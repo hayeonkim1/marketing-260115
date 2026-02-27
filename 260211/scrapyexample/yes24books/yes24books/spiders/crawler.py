@@ -1,4 +1,6 @@
 import scrapy
+from yes24books.items import Yes24BooksItem
+
 
 
 class CrawlerSpider(scrapy.Spider):
@@ -10,14 +12,14 @@ class CrawlerSpider(scrapy.Spider):
         books = response.css("ul#yesBestList > li")
 
         for i, book in enumerate(books[:11], 1) :
-              title = book.css("div.info_row.info_name a.gd_name::text").get()
-              url = book.css("div.info_row.info_name a.gd_name::attr(href)").get()
+            title = book.css("div.info_row.info_name a.gd_name::text").get()
+            url = book.css("div.info_row.info_name a.gd_name::attr(href)").get()
 
-              item = Yes24BooksItem()
+            item = Yes24BooksItem()
             
-              item["rank"] = i
-              item["title"] = title
-              item["url"] = response.urljoin(link)
-                
-              yield item
+            item["rank"] = i
+            item["title"] = title
+            item["url"] = response.urljoin(url)
+               
+            yield item
  
