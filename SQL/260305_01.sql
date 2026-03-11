@@ -1,0 +1,12 @@
+DROP DATABASE IF EXISTS ecommerce;
+CREATE DATABASE ecommerce;
+USE ecommerce;
+
+CREATE TABLE IF NOT EXISTS teddyproducts(
+	id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(200) NOT NULL,
+    category VARCHAR (20) NOT NULL
+);
+SHOW TABLES;
+DESC teddyproducts;
+SELECT * FROM teddyproducts;
