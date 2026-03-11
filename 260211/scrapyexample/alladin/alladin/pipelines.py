@@ -9,8 +9,9 @@ class CleanValidatePipeline:
         # title = item.get("title").strip()
         title = a.get("title").strip()
         author_company = a.get("author_company").strip()
-        price_point = a.get("price_point").strip()
-        url = a.get("url").strip()
+        price = a.get("price").strip()
+        point = a.get("point").strip()
+        url = a.get("url")
 
         if not title:
             raise DropItem("Missing title")
@@ -18,18 +19,16 @@ class CleanValidatePipeline:
             raise DropItem("Missing url")
         if not author_company:
             raise DropItem("Missing author_company")
-        if not price_point:
-            raise DropItem("Missing price_point")
+        if not point:
+            raise DropItem("Missing point")
+        if not point:
+            raise DropItem("Missing point")
 
         item["title"] = title
         item["url"] = url
         item["author_company"] = author_company
-        item["price_point"] = price_point
-
-        return item
-
-
-
+        item["price"] = price
+        item["point"] = point
 
 
         return item

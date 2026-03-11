@@ -51,7 +51,7 @@ ROBOTSTXT_OBEY = False
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-   "yes24books.middlewares.RandomUserAgentMiddleware": 543,
+   "yes24books.middlewares.RandomUserAgentMiddleware": 400,
 }
 
 # Enable or disable extensions

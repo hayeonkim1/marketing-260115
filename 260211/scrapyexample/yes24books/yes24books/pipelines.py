@@ -6,7 +6,7 @@ class CleanValidatePipeline:
         a = ItemAdapter(item)
         # title = item.get("title").strip()
         title = a.get("title").strip()
-        title = a.get("url").strip()
+        url = a.get("url").strip()
 
         if not title:
             raise DropItem("Missing title")
