@@ -120,15 +120,12 @@ ORDER BY rental_count DESC;
 
 /*
 [오늘의 미션] 3/11
-1. Sakila DB > 한 번도 대여되지 않은 영화 찾기
-2. 고객별 누적 결제금액을 등급 분류 & 등급별 상위 3명씩만 조회.출력
-총 결제액 100이상 : VIP / 100미만 50이하 : GOLD / 50미만 : SILVER
-JOIN (INNER), SubQuery, 상관 SubQuery, WITH, VIEW 어떤 것을 사용해도 무관함
-*/
-#1. 
+1. Sakila DB > 한 번도 대여되지 않은 영화 찾기*/
+
 -- title을 찾아오기 위해 film_id로 film, inventory innerjoin
 -- 대여횟수 :0 => inventory_id 는 있지만 rental_id는 없는 영화 => inventory 랑 rental OUTERJOIN =>rental_id가 NULL인 영화 제목
 
+USE sakila;
 SELECT * FROM film; #film_id, title
 SELECT * FROM inventory;#film_id, inventory_id
 SELECT * FROM rental; #inventory_id, rental_id
@@ -143,6 +140,7 @@ WHERE rental_id IS NULL;
 /*고객별 누적 결제금액을 등급 분류 & 등급별 상위 3명씩만 조회.출력
 총 결제액 100이상 : VIP / 100미만 50이하 : GOLD / 50미만 : SILVER
 JOIN (INNER), SubQuery, 상관 SubQuery, WITH, VIEW 어떤 것을 사용해도 무관함*/
+
 SELECT * FROM customer; #customer_id, name
 SELECT * FROM payment; #customer_id ,amount
 
@@ -154,7 +152,9 @@ JOIN payment P USING(customer_id)
 GROUP BY C.customer_id;
 
 SELECT 
-	grade, 
+	full_name,
+    total_amount,
+	grade
 FROM (
 	SELECT 
 		full_name,
@@ -172,8 +172,7 @@ FROM (
 		JOIN payment P USING(customer_id)
 		GROUP BY C.customer_id
 		) customer
-) customer_grade
-GROUP BY grade;
+) customer_grade;
 
 
 
