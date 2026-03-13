@@ -118,8 +118,11 @@ JOIN rental R USING (inventory_id)
 GROUP BY C.category_id
 ORDER BY rental_count DESC;
 
+
+
+
 /*
-[오늘의 미션] 3/11
+[오늘의 미션과제] 3/11
 1. Sakila DB > 한 번도 대여되지 않은 영화 찾기
 2. 고객별 누적 결제금액을 등급 분류 & 등급별 상위 3명씩만 조회.출력
 총 결제액 100이상 : VIP / 100미만 50이하 : GOLD / 50미만 : SILVER
@@ -128,17 +131,23 @@ JOIN (INNER), SubQuery, 상관 SubQuery, WITH, VIEW 어떤 것을 사용해도 �
 #1. 
 -- title을 찾아오기 위해 film_id로 film, inventory innerjoin
 -- 대여횟수 :0 => inventory_id 는 있지만 rental_id는 없는 영화 => inventory 랑 rental OUTERJOIN =>rental_id가 NULL인 영화 제목
-
+USE sakila;
 SELECT * FROM film; #film_id, title
 SELECT * FROM inventory;#film_id, inventory_id
 SELECT * FROM rental; #inventory_id, rental_id
 
-SELECT title
+SELECT F.title,F.film_id
 FROM film F
 JOIN inventory I USING (film_id)
 LEFT JOIN rental R USING (inventory_id)
-WHERE rental_id IS NULL;
--- ---------------
+WHERE rental_id IS NULL
+GROUP BY F.title, F.film_id;
+
+
+-- ==============================
+
+
+
 #2.
 /*고객별 누적 결제금액을 등급 분류 & 등급별 상위 3명씩만 조회.출력
 총 결제액 100이상 : VIP / 100미만 50이하 : GOLD / 50미만 : SILVER
@@ -146,15 +155,76 @@ JOIN (INNER), SubQuery, 상관 SubQuery, WITH, VIEW 어떤 것을 사용해도 �
 SELECT * FROM customer; #customer_id, name
 SELECT * FROM payment; #customer_id ,amount
 
+-- =======================
+#선생님 해설 ver.
+
+
+-- =========================
+
 SELECT 
 	CONCAT(first_name," ", last_name) full_name, 
-    SUM(amount) total_amount
+    SUM(P.amount) total_amount
 FROM customer C
 JOIN payment P USING(customer_id)
 GROUP BY C.customer_id;
 
+
+#외부 쿼리문의 값을 내부 쿼리문 계산에 사용하므로 상관 서브쿼리
+ #순위를 메기려면 나의 값과 다른 값들을 다 비교해서 값이 더 클때마다 순위값을 +1
+-- 어떤 값을 조회, 기본베이스를 만들어놓고 해당 베이스를 기반으로 비교! 
+
 SELECT 
-	grade, 
+	t.customer_id,
+    t.full_name,
+    t.total_payment,
+    t.grade,
+    (	
+		SELECT COUNT(*)
+        FROM (
+			SELECT 
+				C.customer_id,
+                SUM(P.amount) total_payment,
+                CASE 
+					WHEN SUM(P.amount) >= 100 THEN "VIP"
+					WHEN SUM(P.amount) >= 50 THEN "GOLD"
+					ELSE "SILVER"
+				END AS grade
+            FROM customer C
+            JOIN payment P USING (customer_id)
+            GROUP BY C.customer_id
+        )t_copy
+        WHERE t_copy.grade = t.grade AND t_copy.total_payment > t.total_payment
+    ) +1 grade_rank #본인이 들어가야되니까 +1로 시작(0위과 아니라 1위가 되게끔)
+FROM (
+	SELECT 
+		customer_id,
+		CONCAT(first_name," ", last_name) full_name, 
+		SUM(P.amount) total_payment,
+		CASE 
+				WHEN SUM(P.amount) >= 100 THEN "VIP"
+				WHEN SUM(P.amount) >= 50 THEN "GOLD"
+				ELSE "SILVER"
+		END AS grade
+	FROM customer C
+	JOIN payment P USING(customer_id)
+	GROUP BY C.customer_id
+) t
+HAVING grade_rank <=3
+ORDER BY grade, grade_rank;
+
+
+
+
+
+
+
+
+
+
+
+
+SELECT 
+	grade
 FROM (
 	SELECT 
 		full_name,
