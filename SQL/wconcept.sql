@@ -1,16 +1,22 @@
 CREATE DATABASE IF NOT EXISTS wconcept_crawling
-CHARACTER SET utf8mb4
-COLLATE utf8mb4_general_ci;
+DEFAULT CHARACTER SET utf8mb4
+DEFAULT COLLATE utf8mb4_general_ci;
 
 USE wconcept_crawling;
 
 CREATE TABLE IF NOT EXISTS wconcept_data(
-		brand VARCHAR(50) NOT NULL,
+		product_id INT AUTO_INCREMENT PRIMARY KEY,
+		brand_id INT AUTO_INCREMENT PRIMARY KEY,
+		brand VARCHAR(50) NOT NULL UNIQUE,
         product_name VARCHAR(100) NOT NULL,
         product_price INT NOT NULL,
+        salae_price INT,
         dis_rate INT NOT NULL,
-        reviews_count INT NOT NULL    
+        rating INT,
+        reviews_count INT NOT NULL,  
+        FOREIGN KEY (brand_id) REFERENCES brands (brand_id)
 );
+SHOW TABLES;
 DESC wconcept_data;
 
 #1 판매가 기준 상위 20개 상품조회
