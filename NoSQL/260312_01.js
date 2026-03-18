@@ -1,9 +1,10 @@
-// 현재 나의 계적 속 데이터 베이스 조회
+// 현재 나의 계정 속 데이터 베이스 조회
 show dbs
 
 // 특정 데이터 베이스를 선택.사용
 use datamkt
 use admin
+use nosql02
 
 // 쿼리문 실행
 // ctrl+enter | ctrl + shirft+ enter
@@ -12,10 +13,10 @@ use admin
 show collections
 
 // 현재 데이터베이스 안에 특정 컬렉션안에 데이터 찾기
-// 객체지향 프로그래밍 언어의 경우 , 부모루트 > 자녀루드로 이도
+// 객체지향 프로그래밍 언어의 경우 , 부모루트 > 자녀루드로 이동
 db.test.find() 
 // 데이터베이스 상태정보 확인 
-db.statss()
+db.stats()
 
 //데이터베스 안에 컬렉션을 삭제
 db.test.drop()
@@ -145,7 +146,7 @@ db.users.find(
 // SELECT * FROM users WHERE age > 25 AND age <=50;
 
 
-// SELECT * FROM users WHERE age IN (45,50) => age가 45 또는 50인 값  =>[]는 또는이라는 뜻
+// SELECT * FROM users WHERE age IN (45,50) => age가 45 또는 50인 값  =>##[]는 또는이라는 뜻
 db.users.find(
   {age: {$in: [45,50]}}
 )
@@ -209,7 +210,7 @@ db.users.find(
 
 //문제2: age가 50이고 address가 경기도인 값의 name만
 db.users.find(
-  {age: {$eq:50} , address: "경기도"}, {name:1}
+  {age: {$eq:50} , address: "경기도"}, {name:1, _id:0}
 )
 
 //3: age가 30보다 작은 name과 age출력 

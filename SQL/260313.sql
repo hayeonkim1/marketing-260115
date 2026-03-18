@@ -18,10 +18,7 @@ JOIN country USING (country_id)
 WHERE country = "Canada";
 
 
-/*
-MISSION12: 캐나다 고객들에게 이메일을 활용한 CRM마케팅을 진행하려고 합니다.
-캐나다 지역 고객들의 이름,EMAIL 필요. 각 테이블 조회, 출력
-*/
+
 
 
 

@@ -92,11 +92,25 @@ FROM address
 LEFT JOIN customer USING(address_id)
 WHERE customer_id IS NULL; 
 
+SELECT 
+	COUNT(*) 
+FROM customer C
+RIGHT JOIN address A USING (address_id)
+WHERE customer_id IS NULL;
+
+
 /*
 [오늘의 미션] 3/12
 Sakila DB > 카테고리별 대여횟수 TOP3인 영화 조회.찾기
 Sakila DB > 월별 매출에 따른 증감률 구해서.출력 (현재매출 - 전월매출 / 전월매출) * 100
 */
 
-SELECT * FROM film 
+
+
+
+
+
+
+
+
 
