@@ -33,8 +33,8 @@ ALTER TABLE customer MODIFY COLUMN age INT NOT NULL;
 
 
 최초 컬럼 생성때와는 달리 컬럼의 기능(성격)이 많이 변질
-=> 컬럼명 변경 필요!!
-ALTER TABLE <tablename> CHANGE COLUMN <기존 컬럼명> <변경할 컬럼명> <변경할 컬럼 데이터명>.
+=> 컬럼 변경 필요!!
+ALTER TABLE <tablename> CHANGE COLUMN <기존 컬럼명> <변경할 컬럼명> <변경할 컬럼 데이터형태>.
 ALTER TABLE customer CHANGE COLUMN phone mobile VARCHAR(30) NOT NULL;
 
 
