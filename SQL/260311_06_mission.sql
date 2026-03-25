@@ -2,6 +2,7 @@
 1. comedy, sports, family 카테고리의 category_id를 찾아서 카테고리명과 아이디를 같이 출력
 */
 SELECT * FROM category; 
+USE sakila;
  
  #1)
 SELECT category_id, name
