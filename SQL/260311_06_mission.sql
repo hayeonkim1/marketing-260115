@@ -2,6 +2,7 @@
 1. comedy, sports, family 카테고리의 category_id를 찾아서 카테고리명과 아이디를 같이 출력
 */
 SELECT * FROM category; 
+USE sakila;
  
  #1)
 SELECT category_id, name
@@ -122,6 +123,14 @@ ORDER BY rental_count DESC;
 
 
 /*
+<<<<<<< HEAD
+[오늘의 미션] 3/11
+1. Sakila DB > 한 번도 대여되지 않은 영화 찾기*/
+
+-- title을 찾아오기 위해 film_id로 film, inventory innerjoin
+-- 대여횟수 :0 => inventory_id 는 있지만 rental_id는 없는 영화 => inventory 랑 rental OUTERJOIN =>rental_id가 NULL인 영화 제목
+
+=======
 [오늘의 미션과제] 3/11
 1. Sakila DB > 한 번도 대여되지 않은 영화 찾기
 2. 고객별 누적 결제금액을 등급 분류 & 등급별 상위 3명씩만 조회.출력
@@ -131,6 +140,7 @@ JOIN (INNER), SubQuery, 상관 SubQuery, WITH, VIEW 어떤 것을 사용해도 �
 #1. 
 -- title을 찾아오기 위해 film_id로 film, inventory innerjoin
 -- 대여횟수 :0 => inventory_id 는 있지만 rental_id는 없는 영화 => inventory 랑 rental OUTERJOIN =>rental_id가 NULL인 영화 제목
+>>>>>>> 53e0d48da6b81dec72e483e84220eb5655797ad6
 USE sakila;
 SELECT * FROM film; #film_id, title
 SELECT * FROM inventory;#film_id, inventory_id
@@ -152,6 +162,7 @@ GROUP BY F.title, F.film_id;
 /*고객별 누적 결제금액을 등급 분류 & 등급별 상위 3명씩만 조회.출력
 총 결제액 100이상 : VIP / 100미만 50이하 : GOLD / 50미만 : SILVER
 JOIN (INNER), SubQuery, 상관 SubQuery, WITH, VIEW 어떤 것을 사용해도 무관함*/
+
 SELECT * FROM customer; #customer_id, name
 SELECT * FROM payment; #customer_id ,amount
 
@@ -174,6 +185,10 @@ GROUP BY C.customer_id;
 -- 어떤 값을 조회, 기본베이스를 만들어놓고 해당 베이스를 기반으로 비교! 
 
 SELECT 
+<<<<<<< HEAD
+	full_name,
+    total_amount,
+=======
 	t.customer_id,
     t.full_name,
     t.total_payment,
@@ -224,6 +239,7 @@ ORDER BY grade, grade_rank;
 
 
 SELECT 
+>>>>>>> 53e0d48da6b81dec72e483e84220eb5655797ad6
 	grade
 FROM (
 	SELECT 
@@ -242,8 +258,7 @@ FROM (
 		JOIN payment P USING(customer_id)
 		GROUP BY C.customer_id
 		) customer
-) customer_grade
-GROUP BY grade;
+) customer_grade;
 
 
 
