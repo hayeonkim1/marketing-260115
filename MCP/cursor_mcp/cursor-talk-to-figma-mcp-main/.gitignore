@@ -3,3 +3,6 @@ node_modules/
 .env
 dist/
 docs/
+# 구글 클라우드 보안 키 제외
+credentials.json
+**/credentials.json

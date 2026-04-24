@@ -1,0 +1,12 @@
+node_modules/
+.cursor/
+*.env
+dist/
+docs/
+mcp-config/**/*.env
+# 보안 키 파일 제외
+credentials.json/
+
+# 대용량 데이터 파일 제외
+*.csv
+00_data/

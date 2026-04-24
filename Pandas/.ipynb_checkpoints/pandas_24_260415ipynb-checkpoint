@@ -1,0 +1,2855 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "6b142a5d-20f0-4d32-9649-45ada8ebd83d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# 데이터 측정 기간 : 최신성 신뢰도 -> 2016 ~ 2018년\n",
+    "# 데이터 비교 데이터 : olist (브라질 내 유사 플랫폼 비즈니스 Top 5)\n",
+    "# 얼마나 많은 고객이 있는가? 96,096명\n",
+    "# 고객은 주로 어디에 살고 있는가? sao paulo > rio de janeiro > belo horizonte\n",
+    "# 고객은 주로 어떤 결제방법을 선택하고 있는가? credit_card > boleto > voucher\n",
+    "# (월별)평균 결제액은 얼마일까? 768,619원 (브라질 화폐단위) + 2017년도 11월 최고매출 달성 월\n",
+    "# 데이터 => 측정 기준에 따라 (많은지, 적은지 결정)\n",
+    "# 데이터 => 비교대상에 따라 (좋은 , 안좋은)\n",
+    "# 쇼핑몰 결제 -> 상품 판매가 + 배송비 => 결제단계 // 변수 (생일쿠폰, 고객등급 할인률적용, 시즌별 할인률적용)\n",
+    "# 쇼핑몰 결제 -> 상품출고 승인 -> 택배 -> 택배기사 -> 소비\n",
+    "\n",
+    "# 일.주.월별 판매 트랜드?\n",
+    "# 어떤 카테고리가 가장 많은 상품이 판매되었을까?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "62b22b80-6f29-42fc-b01d-97f66999e485",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "\n",
+    "PATH = \"00_data\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "33923c85-d858-413a-9ce7-64371038dcb1",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "products = pd.read_csv(f\"{PATH}/olist_products_dataset.csv\", encoding=\"utf-8-sig\")\n",
+    "customers= pd.read_csv(f\"{PATH}/olist_customers_dataset.csv\", encoding=\"utf-8-sig\")\n",
+    "geolocation = pd.read_csv(f\"{PATH}/olist_geolocation_dataset.csv\", encoding=\"utf-8-sig\")\n",
+    "order_items = pd.read_csv(f\"{PATH}/olist_order_items_dataset.csv\", encoding=\"utf-8-sig\")\n",
+    "payments = pd.read_csv(f\"{PATH}/olist_order_payments_dataset.csv\", encoding=\"utf-8-sig\")\n",
+    "reviews = pd.read_csv(f\"{PATH}/olist_order_reviews_dataset.csv\", encoding=\"utf-8-sig\")\n",
+    "orders = pd.read_csv(f\"{PATH}/olist_orders_dataset.csv\", encoding=\"utf-8-sig\")\n",
+    "sellers = pd.read_csv(f\"{PATH}/olist_sellers_dataset.csv\", encoding=\"utf-8-sig\")\n",
+    "category_name = pd.read_csv(f\"{PATH}/product_category_name_translation.csv\", encoding=\"utf-8-sig\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "732e40d1-84a0-4665-9484-a8f91bb8028a",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>order_id</th>\n",
+       "      <th>payment_sequential</th>\n",
+       "      <th>payment_type</th>\n",
+       "      <th>payment_installments</th>\n",
+       "      <th>payment_value</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>b81ef226f3fe1789b1e8b2acac839d17</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>8</td>\n",
+       "      <td>99.33</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>a9810da82917af2d9aefd1278f1dcfa0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>1</td>\n",
+       "      <td>24.39</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>25e8ea4e93396b6fa0d3dd708e76c1bd</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>1</td>\n",
+       "      <td>65.71</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>ba78997921bbcdc1373bb41e913ab953</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>8</td>\n",
+       "      <td>107.78</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>42fdf880ba16b47b59251dd489d4441a</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>2</td>\n",
+       "      <td>128.45</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                           order_id  payment_sequential payment_type  \\\n",
+       "0  b81ef226f3fe1789b1e8b2acac839d17                   1  credit_card   \n",
+       "1  a9810da82917af2d9aefd1278f1dcfa0                   1  credit_card   \n",
+       "2  25e8ea4e93396b6fa0d3dd708e76c1bd                   1  credit_card   \n",
+       "3  ba78997921bbcdc1373bb41e913ab953                   1  credit_card   \n",
+       "4  42fdf880ba16b47b59251dd489d4441a                   1  credit_card   \n",
+       "\n",
+       "   payment_installments  payment_value  \n",
+       "0                     8          99.33  \n",
+       "1                     1          24.39  \n",
+       "2                     1          65.71  \n",
+       "3                     8         107.78  \n",
+       "4                     2         128.45  "
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "payments.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "a3ed8c5c-adc0-4305-baaf-23e21a743405",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>order_id</th>\n",
+       "      <th>order_item_id</th>\n",
+       "      <th>product_id</th>\n",
+       "      <th>seller_id</th>\n",
+       "      <th>shipping_limit_date</th>\n",
+       "      <th>price</th>\n",
+       "      <th>freight_value</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>00010242fe8c5a6d1ba2dd792cb16214</td>\n",
+       "      <td>1</td>\n",
+       "      <td>4244733e06e7ecb4970a6e2683c13e61</td>\n",
+       "      <td>48436dade18ac8b2bce089ec2a041202</td>\n",
+       "      <td>2017-09-19 09:45:35</td>\n",
+       "      <td>58.90</td>\n",
+       "      <td>13.29</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>00018f77f2f0320c557190d7a144bdd3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>e5f2d52b802189ee658865ca93d83a8f</td>\n",
+       "      <td>dd7ddc04e1b6c2c614352b383efe2d36</td>\n",
+       "      <td>2017-05-03 11:05:13</td>\n",
+       "      <td>239.90</td>\n",
+       "      <td>19.93</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>000229ec398224ef6ca0657da4fc703e</td>\n",
+       "      <td>1</td>\n",
+       "      <td>c777355d18b72b67abbeef9df44fd0fd</td>\n",
+       "      <td>5b51032eddd242adc84c38acab88f23d</td>\n",
+       "      <td>2018-01-18 14:48:30</td>\n",
+       "      <td>199.00</td>\n",
+       "      <td>17.87</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>00024acbcdf0a6daa1e931b038114c75</td>\n",
+       "      <td>1</td>\n",
+       "      <td>7634da152a4610f1595efa32f14722fc</td>\n",
+       "      <td>9d7a1d34a5052409006425275ba1c2b4</td>\n",
+       "      <td>2018-08-15 10:10:18</td>\n",
+       "      <td>12.99</td>\n",
+       "      <td>12.79</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>00042b26cf59d7ce69dfabb4e55b4fd9</td>\n",
+       "      <td>1</td>\n",
+       "      <td>ac6c3623068f30de03045865e4e10089</td>\n",
+       "      <td>df560393f3a51e74553ab94004ba5c87</td>\n",
+       "      <td>2017-02-13 13:57:51</td>\n",
+       "      <td>199.90</td>\n",
+       "      <td>18.14</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                           order_id  order_item_id  \\\n",
+       "0  00010242fe8c5a6d1ba2dd792cb16214              1   \n",
+       "1  00018f77f2f0320c557190d7a144bdd3              1   \n",
+       "2  000229ec398224ef6ca0657da4fc703e              1   \n",
+       "3  00024acbcdf0a6daa1e931b038114c75              1   \n",
+       "4  00042b26cf59d7ce69dfabb4e55b4fd9              1   \n",
+       "\n",
+       "                         product_id                         seller_id  \\\n",
+       "0  4244733e06e7ecb4970a6e2683c13e61  48436dade18ac8b2bce089ec2a041202   \n",
+       "1  e5f2d52b802189ee658865ca93d83a8f  dd7ddc04e1b6c2c614352b383efe2d36   \n",
+       "2  c777355d18b72b67abbeef9df44fd0fd  5b51032eddd242adc84c38acab88f23d   \n",
+       "3  7634da152a4610f1595efa32f14722fc  9d7a1d34a5052409006425275ba1c2b4   \n",
+       "4  ac6c3623068f30de03045865e4e10089  df560393f3a51e74553ab94004ba5c87   \n",
+       "\n",
+       "   shipping_limit_date   price  freight_value  \n",
+       "0  2017-09-19 09:45:35   58.90          13.29  \n",
+       "1  2017-05-03 11:05:13  239.90          19.93  \n",
+       "2  2018-01-18 14:48:30  199.00          17.87  \n",
+       "3  2018-08-15 10:10:18   12.99          12.79  \n",
+       "4  2017-02-13 13:57:51  199.90          18.14  "
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "order_items.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "4694c680-1931-4bcd-8ce9-57ee18290295",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>order_id</th>\n",
+       "      <th>customer_id</th>\n",
+       "      <th>order_status</th>\n",
+       "      <th>order_purchase_timestamp</th>\n",
+       "      <th>order_approved_at</th>\n",
+       "      <th>order_delivered_carrier_date</th>\n",
+       "      <th>order_delivered_customer_date</th>\n",
+       "      <th>order_estimated_delivery_date</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>e481f51cbdc54678b7cc49136f2d6af7</td>\n",
+       "      <td>9ef432eb6251297304e76186b10a928d</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2017-10-02 10:56:33</td>\n",
+       "      <td>2017-10-02 11:07:15</td>\n",
+       "      <td>2017-10-04 19:55:00</td>\n",
+       "      <td>2017-10-10 21:25:13</td>\n",
+       "      <td>2017-10-18 00:00:00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>53cdb2fc8bc7dce0b6741e2150273451</td>\n",
+       "      <td>b0830fb4747a6c6d20dea0b8c802d7ef</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2018-07-24 20:41:37</td>\n",
+       "      <td>2018-07-26 03:24:27</td>\n",
+       "      <td>2018-07-26 14:31:00</td>\n",
+       "      <td>2018-08-07 15:27:45</td>\n",
+       "      <td>2018-08-13 00:00:00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>47770eb9100c2d0c44946d9cf07ec65d</td>\n",
+       "      <td>41ce2a54c0b03bf3443c3d931a367089</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2018-08-08 08:38:49</td>\n",
+       "      <td>2018-08-08 08:55:23</td>\n",
+       "      <td>2018-08-08 13:50:00</td>\n",
+       "      <td>2018-08-17 18:06:29</td>\n",
+       "      <td>2018-09-04 00:00:00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>949d5b44dbf5de918fe9c16f97b45f8a</td>\n",
+       "      <td>f88197465ea7920adcdbec7375364d82</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2017-11-18 19:28:06</td>\n",
+       "      <td>2017-11-18 19:45:59</td>\n",
+       "      <td>2017-11-22 13:39:59</td>\n",
+       "      <td>2017-12-02 00:28:42</td>\n",
+       "      <td>2017-12-15 00:00:00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>ad21c59c0840e6cb83a9ceb5573f8159</td>\n",
+       "      <td>8ab97904e6daea8866dbdbc4fb7aad2c</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2018-02-13 21:18:39</td>\n",
+       "      <td>2018-02-13 22:20:29</td>\n",
+       "      <td>2018-02-14 19:46:34</td>\n",
+       "      <td>2018-02-16 18:17:02</td>\n",
+       "      <td>2018-02-26 00:00:00</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                           order_id                       customer_id  \\\n",
+       "0  e481f51cbdc54678b7cc49136f2d6af7  9ef432eb6251297304e76186b10a928d   \n",
+       "1  53cdb2fc8bc7dce0b6741e2150273451  b0830fb4747a6c6d20dea0b8c802d7ef   \n",
+       "2  47770eb9100c2d0c44946d9cf07ec65d  41ce2a54c0b03bf3443c3d931a367089   \n",
+       "3  949d5b44dbf5de918fe9c16f97b45f8a  f88197465ea7920adcdbec7375364d82   \n",
+       "4  ad21c59c0840e6cb83a9ceb5573f8159  8ab97904e6daea8866dbdbc4fb7aad2c   \n",
+       "\n",
+       "  order_status order_purchase_timestamp    order_approved_at  \\\n",
+       "0    delivered      2017-10-02 10:56:33  2017-10-02 11:07:15   \n",
+       "1    delivered      2018-07-24 20:41:37  2018-07-26 03:24:27   \n",
+       "2    delivered      2018-08-08 08:38:49  2018-08-08 08:55:23   \n",
+       "3    delivered      2017-11-18 19:28:06  2017-11-18 19:45:59   \n",
+       "4    delivered      2018-02-13 21:18:39  2018-02-13 22:20:29   \n",
+       "\n",
+       "  order_delivered_carrier_date order_delivered_customer_date  \\\n",
+       "0          2017-10-04 19:55:00           2017-10-10 21:25:13   \n",
+       "1          2018-07-26 14:31:00           2018-08-07 15:27:45   \n",
+       "2          2018-08-08 13:50:00           2018-08-17 18:06:29   \n",
+       "3          2017-11-22 13:39:59           2017-12-02 00:28:42   \n",
+       "4          2018-02-14 19:46:34           2018-02-16 18:17:02   \n",
+       "\n",
+       "  order_estimated_delivery_date  \n",
+       "0           2017-10-18 00:00:00  \n",
+       "1           2018-08-13 00:00:00  \n",
+       "2           2018-09-04 00:00:00  \n",
+       "3           2017-12-15 00:00:00  \n",
+       "4           2018-02-26 00:00:00  "
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "orders.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "16f7a2f2-bc71-4719-9bbd-90fa6a0bacca",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(99441, 8)"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "orders.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "6ce5144e-a86b-460a-96c7-d294fa2d24ad",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 99441 entries, 0 to 99440\n",
+      "Data columns (total 8 columns):\n",
+      " #   Column                         Non-Null Count  Dtype \n",
+      "---  ------                         --------------  ----- \n",
+      " 0   order_id                       99441 non-null  object\n",
+      " 1   customer_id                    99441 non-null  object\n",
+      " 2   order_status                   99441 non-null  object\n",
+      " 3   order_purchase_timestamp       99441 non-null  object\n",
+      " 4   order_approved_at              99281 non-null  object\n",
+      " 5   order_delivered_carrier_date   97658 non-null  object\n",
+      " 6   order_delivered_customer_date  96476 non-null  object\n",
+      " 7   order_estimated_delivery_date  99441 non-null  object\n",
+      "dtypes: object(8)\n",
+      "memory usage: 6.1+ MB\n"
+     ]
+    }
+   ],
+   "source": [
+    "orders.info()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "823c87b1-4e32-4fee-ac79-eb3089823416",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "order_id                            0\n",
+       "customer_id                         0\n",
+       "order_status                        0\n",
+       "order_purchase_timestamp            0\n",
+       "order_approved_at                 160\n",
+       "order_delivered_carrier_date     1783\n",
+       "order_delivered_customer_date    2965\n",
+       "order_estimated_delivery_date       0\n",
+       "dtype: int64"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "orders.isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "3f98202b-6d4f-407c-9323-97c237e6b4df",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "\n",
+    "# orders.info()\n",
+    "orders = orders.dropna()\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "a4a5e136-322b-4551-b78d-2d62381489f3",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "Index: 96461 entries, 0 to 99440\n",
+      "Data columns (total 8 columns):\n",
+      " #   Column                         Non-Null Count  Dtype \n",
+      "---  ------                         --------------  ----- \n",
+      " 0   order_id                       96461 non-null  object\n",
+      " 1   customer_id                    96461 non-null  object\n",
+      " 2   order_status                   96461 non-null  object\n",
+      " 3   order_purchase_timestamp       96461 non-null  object\n",
+      " 4   order_approved_at              96461 non-null  object\n",
+      " 5   order_delivered_carrier_date   96461 non-null  object\n",
+      " 6   order_delivered_customer_date  96461 non-null  object\n",
+      " 7   order_estimated_delivery_date  96461 non-null  object\n",
+      "dtypes: object(8)\n",
+      "memory usage: 6.6+ MB\n"
+     ]
+    }
+   ],
+   "source": [
+    "orders.info()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "1afd59a4-f563-42bf-b768-17ce7d0e8b18",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>order_id</th>\n",
+       "      <th>customer_id</th>\n",
+       "      <th>order_status</th>\n",
+       "      <th>order_purchase_timestamp</th>\n",
+       "      <th>order_approved_at</th>\n",
+       "      <th>order_delivered_carrier_date</th>\n",
+       "      <th>order_delivered_customer_date</th>\n",
+       "      <th>order_estimated_delivery_date</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>e481f51cbdc54678b7cc49136f2d6af7</td>\n",
+       "      <td>9ef432eb6251297304e76186b10a928d</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2017-10-02 10:56:33</td>\n",
+       "      <td>2017-10-02 11:07:15</td>\n",
+       "      <td>2017-10-04 19:55:00</td>\n",
+       "      <td>2017-10-10 21:25:13</td>\n",
+       "      <td>2017-10-18 00:00:00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>53cdb2fc8bc7dce0b6741e2150273451</td>\n",
+       "      <td>b0830fb4747a6c6d20dea0b8c802d7ef</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2018-07-24 20:41:37</td>\n",
+       "      <td>2018-07-26 03:24:27</td>\n",
+       "      <td>2018-07-26 14:31:00</td>\n",
+       "      <td>2018-08-07 15:27:45</td>\n",
+       "      <td>2018-08-13 00:00:00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>47770eb9100c2d0c44946d9cf07ec65d</td>\n",
+       "      <td>41ce2a54c0b03bf3443c3d931a367089</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2018-08-08 08:38:49</td>\n",
+       "      <td>2018-08-08 08:55:23</td>\n",
+       "      <td>2018-08-08 13:50:00</td>\n",
+       "      <td>2018-08-17 18:06:29</td>\n",
+       "      <td>2018-09-04 00:00:00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>949d5b44dbf5de918fe9c16f97b45f8a</td>\n",
+       "      <td>f88197465ea7920adcdbec7375364d82</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2017-11-18 19:28:06</td>\n",
+       "      <td>2017-11-18 19:45:59</td>\n",
+       "      <td>2017-11-22 13:39:59</td>\n",
+       "      <td>2017-12-02 00:28:42</td>\n",
+       "      <td>2017-12-15 00:00:00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>ad21c59c0840e6cb83a9ceb5573f8159</td>\n",
+       "      <td>8ab97904e6daea8866dbdbc4fb7aad2c</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2018-02-13 21:18:39</td>\n",
+       "      <td>2018-02-13 22:20:29</td>\n",
+       "      <td>2018-02-14 19:46:34</td>\n",
+       "      <td>2018-02-16 18:17:02</td>\n",
+       "      <td>2018-02-26 00:00:00</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                           order_id                       customer_id  \\\n",
+       "0  e481f51cbdc54678b7cc49136f2d6af7  9ef432eb6251297304e76186b10a928d   \n",
+       "1  53cdb2fc8bc7dce0b6741e2150273451  b0830fb4747a6c6d20dea0b8c802d7ef   \n",
+       "2  47770eb9100c2d0c44946d9cf07ec65d  41ce2a54c0b03bf3443c3d931a367089   \n",
+       "3  949d5b44dbf5de918fe9c16f97b45f8a  f88197465ea7920adcdbec7375364d82   \n",
+       "4  ad21c59c0840e6cb83a9ceb5573f8159  8ab97904e6daea8866dbdbc4fb7aad2c   \n",
+       "\n",
+       "  order_status order_purchase_timestamp    order_approved_at  \\\n",
+       "0    delivered      2017-10-02 10:56:33  2017-10-02 11:07:15   \n",
+       "1    delivered      2018-07-24 20:41:37  2018-07-26 03:24:27   \n",
+       "2    delivered      2018-08-08 08:38:49  2018-08-08 08:55:23   \n",
+       "3    delivered      2017-11-18 19:28:06  2017-11-18 19:45:59   \n",
+       "4    delivered      2018-02-13 21:18:39  2018-02-13 22:20:29   \n",
+       "\n",
+       "  order_delivered_carrier_date order_delivered_customer_date  \\\n",
+       "0          2017-10-04 19:55:00           2017-10-10 21:25:13   \n",
+       "1          2018-07-26 14:31:00           2018-08-07 15:27:45   \n",
+       "2          2018-08-08 13:50:00           2018-08-17 18:06:29   \n",
+       "3          2017-11-22 13:39:59           2017-12-02 00:28:42   \n",
+       "4          2018-02-14 19:46:34           2018-02-16 18:17:02   \n",
+       "\n",
+       "  order_estimated_delivery_date  \n",
+       "0           2017-10-18 00:00:00  \n",
+       "1           2018-08-13 00:00:00  \n",
+       "2           2018-09-04 00:00:00  \n",
+       "3           2017-12-15 00:00:00  \n",
+       "4           2018-02-26 00:00:00  "
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "orders.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "b9a2e192-6a69-4c04-ae19-634f49e5bd22",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# payments \n",
+    "# payments.shape\n",
+    "# payments.info()\n",
+    "payments = payments.groupby(\"order_id\").sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "bed42da7-795c-40d7-bd20-2a8a9aa3d1f5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# payments.head()\n",
+    "payments = payments.reset_index()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "d4e5cc1e-2930-459a-8d79-a6348312f5a4",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>order_id</th>\n",
+       "      <th>payment_sequential</th>\n",
+       "      <th>payment_type</th>\n",
+       "      <th>payment_installments</th>\n",
+       "      <th>payment_value</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>00010242fe8c5a6d1ba2dd792cb16214</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>2</td>\n",
+       "      <td>72.19</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>00018f77f2f0320c557190d7a144bdd3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>3</td>\n",
+       "      <td>259.83</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>000229ec398224ef6ca0657da4fc703e</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>5</td>\n",
+       "      <td>216.87</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>00024acbcdf0a6daa1e931b038114c75</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>2</td>\n",
+       "      <td>25.78</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>00042b26cf59d7ce69dfabb4e55b4fd9</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>3</td>\n",
+       "      <td>218.04</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>99435</th>\n",
+       "      <td>fffc94f6ce00a00581880bf54a75a037</td>\n",
+       "      <td>1</td>\n",
+       "      <td>boleto</td>\n",
+       "      <td>1</td>\n",
+       "      <td>343.40</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>99436</th>\n",
+       "      <td>fffcd46ef2263f404302a634eb57f7eb</td>\n",
+       "      <td>1</td>\n",
+       "      <td>boleto</td>\n",
+       "      <td>1</td>\n",
+       "      <td>386.53</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>99437</th>\n",
+       "      <td>fffce4705a9662cd70adb13d4a31832d</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>3</td>\n",
+       "      <td>116.85</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>99438</th>\n",
+       "      <td>fffe18544ffabc95dfada21779c9644f</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>3</td>\n",
+       "      <td>64.71</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>99439</th>\n",
+       "      <td>fffe41c64501cc87c801fd61db3f6244</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>1</td>\n",
+       "      <td>55.79</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>99440 rows × 5 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                               order_id  payment_sequential payment_type  \\\n",
+       "0      00010242fe8c5a6d1ba2dd792cb16214                   1  credit_card   \n",
+       "1      00018f77f2f0320c557190d7a144bdd3                   1  credit_card   \n",
+       "2      000229ec398224ef6ca0657da4fc703e                   1  credit_card   \n",
+       "3      00024acbcdf0a6daa1e931b038114c75                   1  credit_card   \n",
+       "4      00042b26cf59d7ce69dfabb4e55b4fd9                   1  credit_card   \n",
+       "...                                 ...                 ...          ...   \n",
+       "99435  fffc94f6ce00a00581880bf54a75a037                   1       boleto   \n",
+       "99436  fffcd46ef2263f404302a634eb57f7eb                   1       boleto   \n",
+       "99437  fffce4705a9662cd70adb13d4a31832d                   1  credit_card   \n",
+       "99438  fffe18544ffabc95dfada21779c9644f                   1  credit_card   \n",
+       "99439  fffe41c64501cc87c801fd61db3f6244                   1  credit_card   \n",
+       "\n",
+       "       payment_installments  payment_value  \n",
+       "0                         2          72.19  \n",
+       "1                         3         259.83  \n",
+       "2                         5         216.87  \n",
+       "3                         2          25.78  \n",
+       "4                         3         218.04  \n",
+       "...                     ...            ...  \n",
+       "99435                     1         343.40  \n",
+       "99436                     1         386.53  \n",
+       "99437                     3         116.85  \n",
+       "99438                     3          64.71  \n",
+       "99439                     1          55.79  \n",
+       "\n",
+       "[99440 rows x 5 columns]"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "payments"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "10a1e8c7-e25c-45a1-8a00-1e756dec67aa",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#병합하기\n",
+    "import pandas as pd\n",
+    "merge_order = pd.merge(orders, payments, on = \"order_id\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "f3f33fc9-d8f6-468a-9c5d-228cb1e88c7c",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>order_id</th>\n",
+       "      <th>customer_id</th>\n",
+       "      <th>order_status</th>\n",
+       "      <th>order_purchase_timestamp</th>\n",
+       "      <th>order_approved_at</th>\n",
+       "      <th>order_delivered_carrier_date</th>\n",
+       "      <th>order_delivered_customer_date</th>\n",
+       "      <th>order_estimated_delivery_date</th>\n",
+       "      <th>payment_sequential</th>\n",
+       "      <th>payment_type</th>\n",
+       "      <th>payment_installments</th>\n",
+       "      <th>payment_value</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>e481f51cbdc54678b7cc49136f2d6af7</td>\n",
+       "      <td>9ef432eb6251297304e76186b10a928d</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2017-10-02 10:56:33</td>\n",
+       "      <td>2017-10-02 11:07:15</td>\n",
+       "      <td>2017-10-04 19:55:00</td>\n",
+       "      <td>2017-10-10 21:25:13</td>\n",
+       "      <td>2017-10-18 00:00:00</td>\n",
+       "      <td>6</td>\n",
+       "      <td>credit_cardvouchervoucher</td>\n",
+       "      <td>3</td>\n",
+       "      <td>38.71</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>53cdb2fc8bc7dce0b6741e2150273451</td>\n",
+       "      <td>b0830fb4747a6c6d20dea0b8c802d7ef</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2018-07-24 20:41:37</td>\n",
+       "      <td>2018-07-26 03:24:27</td>\n",
+       "      <td>2018-07-26 14:31:00</td>\n",
+       "      <td>2018-08-07 15:27:45</td>\n",
+       "      <td>2018-08-13 00:00:00</td>\n",
+       "      <td>1</td>\n",
+       "      <td>boleto</td>\n",
+       "      <td>1</td>\n",
+       "      <td>141.46</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>47770eb9100c2d0c44946d9cf07ec65d</td>\n",
+       "      <td>41ce2a54c0b03bf3443c3d931a367089</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2018-08-08 08:38:49</td>\n",
+       "      <td>2018-08-08 08:55:23</td>\n",
+       "      <td>2018-08-08 13:50:00</td>\n",
+       "      <td>2018-08-17 18:06:29</td>\n",
+       "      <td>2018-09-04 00:00:00</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>3</td>\n",
+       "      <td>179.12</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>949d5b44dbf5de918fe9c16f97b45f8a</td>\n",
+       "      <td>f88197465ea7920adcdbec7375364d82</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2017-11-18 19:28:06</td>\n",
+       "      <td>2017-11-18 19:45:59</td>\n",
+       "      <td>2017-11-22 13:39:59</td>\n",
+       "      <td>2017-12-02 00:28:42</td>\n",
+       "      <td>2017-12-15 00:00:00</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>1</td>\n",
+       "      <td>72.20</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>ad21c59c0840e6cb83a9ceb5573f8159</td>\n",
+       "      <td>8ab97904e6daea8866dbdbc4fb7aad2c</td>\n",
+       "      <td>delivered</td>\n",
+       "      <td>2018-02-13 21:18:39</td>\n",
+       "      <td>2018-02-13 22:20:29</td>\n",
+       "      <td>2018-02-14 19:46:34</td>\n",
+       "      <td>2018-02-16 18:17:02</td>\n",
+       "      <td>2018-02-26 00:00:00</td>\n",
+       "      <td>1</td>\n",
+       "      <td>credit_card</td>\n",
+       "      <td>1</td>\n",
+       "      <td>28.62</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                           order_id                       customer_id  \\\n",
+       "0  e481f51cbdc54678b7cc49136f2d6af7  9ef432eb6251297304e76186b10a928d   \n",
+       "1  53cdb2fc8bc7dce0b6741e2150273451  b0830fb4747a6c6d20dea0b8c802d7ef   \n",
+       "2  47770eb9100c2d0c44946d9cf07ec65d  41ce2a54c0b03bf3443c3d931a367089   \n",
+       "3  949d5b44dbf5de918fe9c16f97b45f8a  f88197465ea7920adcdbec7375364d82   \n",
+       "4  ad21c59c0840e6cb83a9ceb5573f8159  8ab97904e6daea8866dbdbc4fb7aad2c   \n",
+       "\n",
+       "  order_status order_purchase_timestamp    order_approved_at  \\\n",
+       "0    delivered      2017-10-02 10:56:33  2017-10-02 11:07:15   \n",
+       "1    delivered      2018-07-24 20:41:37  2018-07-26 03:24:27   \n",
+       "2    delivered      2018-08-08 08:38:49  2018-08-08 08:55:23   \n",
+       "3    delivered      2017-11-18 19:28:06  2017-11-18 19:45:59   \n",
+       "4    delivered      2018-02-13 21:18:39  2018-02-13 22:20:29   \n",
+       "\n",
+       "  order_delivered_carrier_date order_delivered_customer_date  \\\n",
+       "0          2017-10-04 19:55:00           2017-10-10 21:25:13   \n",
+       "1          2018-07-26 14:31:00           2018-08-07 15:27:45   \n",
+       "2          2018-08-08 13:50:00           2018-08-17 18:06:29   \n",
+       "3          2017-11-22 13:39:59           2017-12-02 00:28:42   \n",
+       "4          2018-02-14 19:46:34           2018-02-16 18:17:02   \n",
+       "\n",
+       "  order_estimated_delivery_date  payment_sequential  \\\n",
+       "0           2017-10-18 00:00:00                   6   \n",
+       "1           2018-08-13 00:00:00                   1   \n",
+       "2           2018-09-04 00:00:00                   1   \n",
+       "3           2017-12-15 00:00:00                   1   \n",
+       "4           2018-02-26 00:00:00                   1   \n",
+       "\n",
+       "                payment_type  payment_installments  payment_value  \n",
+       "0  credit_cardvouchervoucher                     3          38.71  \n",
+       "1                     boleto                     1         141.46  \n",
+       "2                credit_card                     3         179.12  \n",
+       "3                credit_card                     1          72.20  \n",
+       "4                credit_card                     1          28.62  "
+      ]
+     },
+     "execution_count": 19,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#지난시간에 연습했던 문자열 타입의 날짜를 본연의 날짜 타입으로 변경 -> 시각화\n",
+    "merge_order.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "id": "1c17b4bb-d83b-4b09-9a67-278201735752",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(96460, 12)"
+      ]
+     },
+     "execution_count": 22,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "merge_order.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "id": "682c404a-71f6-41d0-9bca-62fb55a9ed55",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 96460 entries, 0 to 96459\n",
+      "Data columns (total 12 columns):\n",
+      " #   Column                         Non-Null Count  Dtype  \n",
+      "---  ------                         --------------  -----  \n",
+      " 0   order_id                       96460 non-null  object \n",
+      " 1   customer_id                    96460 non-null  object \n",
+      " 2   order_status                   96460 non-null  object \n",
+      " 3   order_purchase_timestamp       96460 non-null  object \n",
+      " 4   order_approved_at              96460 non-null  object \n",
+      " 5   order_delivered_carrier_date   96460 non-null  object \n",
+      " 6   order_delivered_customer_date  96460 non-null  object \n",
+      " 7   order_estimated_delivery_date  96460 non-null  object \n",
+      " 8   payment_sequential             96460 non-null  int64  \n",
+      " 9   payment_type                   96460 non-null  object \n",
+      " 10  payment_installments           96460 non-null  int64  \n",
+      " 11  payment_value                  96460 non-null  float64\n",
+      "dtypes: float64(1), int64(2), object(9)\n",
+      "memory usage: 8.8+ MB\n"
+     ]
+    }
+   ],
+   "source": [
+    "merge_order.info()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "id": "5d29be4b-8d48-41e0-b596-fe1f10d9f219",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "merge_order[\"order_purchase_timestamp\"] = pd.to_datetime(merge_order[\"order_purchase_timestamp\"], format=\"%Y-%m-%d %H:%M:%S\", errors=\"raise\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 29,
+   "id": "57a46d27-b240-4810-9594-a3d55d039f51",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 96460 entries, 0 to 96459\n",
+      "Data columns (total 12 columns):\n",
+      " #   Column                         Non-Null Count  Dtype         \n",
+      "---  ------                         --------------  -----         \n",
+      " 0   order_id                       96460 non-null  object        \n",
+      " 1   customer_id                    96460 non-null  object        \n",
+      " 2   order_status                   96460 non-null  object        \n",
+      " 3   order_purchase_timestamp       96460 non-null  datetime64[ns]\n",
+      " 4   order_approved_at              96460 non-null  object        \n",
+      " 5   order_delivered_carrier_date   96460 non-null  object        \n",
+      " 6   order_delivered_customer_date  96460 non-null  object        \n",
+      " 7   order_estimated_delivery_date  96460 non-null  object        \n",
+      " 8   payment_sequential             96460 non-null  int64         \n",
+      " 9   payment_type                   96460 non-null  object        \n",
+      " 10  payment_installments           96460 non-null  int64         \n",
+      " 11  payment_value                  96460 non-null  float64       \n",
+      "dtypes: datetime64[ns](1), float64(1), int64(2), object(8)\n",
+      "memory usage: 8.8+ MB\n"
+     ]
+    }
+   ],
+   "source": [
+    "merge_order.info()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 31,
+   "id": "da7ee336-72be-4bb8-8999-7a694091aa68",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#날짜로 변환된 order_purchase_timestamp 랑 payment_value 만 다루는 복제본을 만들어서 활용\n",
+    "\n",
+    "merge_order_payment_date = merge_order[[\"order_purchase_timestamp\",\"payment_value\"]].copy()  #-> 행과 열의 2차원 데이터 이므로 [] 2쌍"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "id": "e9268145-82b0-491b-a5b6-ac33a4c4f85f",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>order_purchase_timestamp</th>\n",
+       "      <th>payment_value</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>2017-10-02 10:56:33</td>\n",
+       "      <td>38.71</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2018-07-24 20:41:37</td>\n",
+       "      <td>141.46</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>2018-08-08 08:38:49</td>\n",
+       "      <td>179.12</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>2017-11-18 19:28:06</td>\n",
+       "      <td>72.20</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>2018-02-13 21:18:39</td>\n",
+       "      <td>28.62</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  order_purchase_timestamp  payment_value\n",
+       "0      2017-10-02 10:56:33          38.71\n",
+       "1      2018-07-24 20:41:37         141.46\n",
+       "2      2018-08-08 08:38:49         179.12\n",
+       "3      2017-11-18 19:28:06          72.20\n",
+       "4      2018-02-13 21:18:39          28.62"
+      ]
+     },
+     "execution_count": 32,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "merge_order_payment_date.head()  "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "id": "58a91d50-90fd-4c5f-a2a7-50c2f20a8233",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#order_purchase_timestamp 에 따른 payment_value 값을 보고싶다 => order_purchase_timestamp를 인덱스로 설정\n",
+    "\n",
+    "merge_order_payment_date = merge_order_payment_date.set_index(\"order_purchase_timestamp\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 34,
+   "id": "b5b5bf9c-d286-42f8-8cbd-7e768de998e7",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>payment_value</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>order_purchase_timestamp</th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>2017-10-02 10:56:33</th>\n",
+       "      <td>38.71</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2018-07-24 20:41:37</th>\n",
+       "      <td>141.46</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2018-08-08 08:38:49</th>\n",
+       "      <td>179.12</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-11-18 19:28:06</th>\n",
+       "      <td>72.20</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2018-02-13 21:18:39</th>\n",
+       "      <td>28.62</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-03-09 09:54:05</th>\n",
+       "      <td>85.08</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2018-02-06 12:58:58</th>\n",
+       "      <td>195.00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-08-27 14:46:43</th>\n",
+       "      <td>271.01</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2018-01-08 21:28:27</th>\n",
+       "      <td>441.16</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2018-03-08 20:57:30</th>\n",
+       "      <td>86.86</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>96460 rows × 1 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                          payment_value\n",
+       "order_purchase_timestamp               \n",
+       "2017-10-02 10:56:33               38.71\n",
+       "2018-07-24 20:41:37              141.46\n",
+       "2018-08-08 08:38:49              179.12\n",
+       "2017-11-18 19:28:06               72.20\n",
+       "2018-02-13 21:18:39               28.62\n",
+       "...                                 ...\n",
+       "2017-03-09 09:54:05               85.08\n",
+       "2018-02-06 12:58:58              195.00\n",
+       "2017-08-27 14:46:43              271.01\n",
+       "2018-01-08 21:28:27              441.16\n",
+       "2018-03-08 20:57:30               86.86\n",
+       "\n",
+       "[96460 rows x 1 columns]"
+      ]
+     },
+     "execution_count": 34,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "merge_order_payment_date"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 38,
+   "id": "6d073178-94f4-4ead-917c-004110f0f1fa",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "merge_order_payment_date = merge_order_payment_date.reset_index()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "89fd1eec-ac01-4d3d-bee1-b196fd8f24bc",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "    "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 39,
+   "id": "4eb09028-2bd6-4ad7-aff8-66b439102b2b",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#pandas 라이브러리 모듈 > Grouper기능\n",
+    "#group by -> 동일한 값을 가지고 있다는 전제, 그룹핑을 하는 것.\n",
+    "# 동일한 값을 갖지 않아도 그룹핑 하고 싶을 경우 \n",
+    "    #ex) 2026-01-01 ~ 2026-01-31 을 우리의 조건에 따라서 그룹화하고 싶음 => Grouper\n",
+    "\n",
+    "import pandas as pd\n",
+    "\n",
+    "merge_order_month_sum = merge_order_payment_date.groupby(pd.Grouper(key= \"order_purchase_timestamp\", freq= \"ME\")).sum() #freq= \"ME\" -> 빈도수= monthly end(ME)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 40,
+   "id": "408d7773-869d-4b46-baf4-215208367c60",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>index</th>\n",
+       "      <th>payment_value</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>order_purchase_timestamp</th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>2016-10-31</th>\n",
+       "      <td>13285926</td>\n",
+       "      <td>47271.20</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2016-11-30</th>\n",
+       "      <td>0</td>\n",
+       "      <td>0.00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2016-12-31</th>\n",
+       "      <td>38576</td>\n",
+       "      <td>19.62</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-01-31</th>\n",
+       "      <td>36482217</td>\n",
+       "      <td>127430.74</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-02-28</th>\n",
+       "      <td>79745050</td>\n",
+       "      <td>269458.98</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-03-31</th>\n",
+       "      <td>122022814</td>\n",
+       "      <td>414369.39</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-04-30</th>\n",
+       "      <td>111811117</td>\n",
+       "      <td>390952.18</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-05-31</th>\n",
+       "      <td>171462434</td>\n",
+       "      <td>566872.73</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-06-30</th>\n",
+       "      <td>151846239</td>\n",
+       "      <td>490225.60</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-07-31</th>\n",
+       "      <td>188086633</td>\n",
+       "      <td>566403.93</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-08-31</th>\n",
+       "      <td>201256615</td>\n",
+       "      <td>646000.61</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-09-30</th>\n",
+       "      <td>200627608</td>\n",
+       "      <td>700976.01</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-10-31</th>\n",
+       "      <td>216777857</td>\n",
+       "      <td>751140.27</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-11-30</th>\n",
+       "      <td>347738845</td>\n",
+       "      <td>1153393.22</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2017-12-31</th>\n",
+       "      <td>267059774</td>\n",
+       "      <td>843199.17</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2018-01-31</th>\n",
+       "      <td>339383930</td>\n",
+       "      <td>1078606.86</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2018-02-28</th>\n",
+       "      <td>314002527</td>\n",
+       "      <td>966554.97</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2018-03-31</th>\n",
+       "      <td>340308004</td>\n",
+       "      <td>1120678.00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2018-04-30</th>\n",
+       "      <td>331071788</td>\n",
+       "      <td>1132933.95</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2018-05-31</th>\n",
+       "      <td>325781985</td>\n",
+       "      <td>1128836.69</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2018-06-30</th>\n",
+       "      <td>294998895</td>\n",
+       "      <td>1011561.35</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2018-07-31</th>\n",
+       "      <td>295384504</td>\n",
+       "      <td>1027383.10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2018-08-31</th>\n",
+       "      <td>303044232</td>\n",
+       "      <td>985414.28</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                              index  payment_value\n",
+       "order_purchase_timestamp                          \n",
+       "2016-10-31                 13285926       47271.20\n",
+       "2016-11-30                        0           0.00\n",
+       "2016-12-31                    38576          19.62\n",
+       "2017-01-31                 36482217      127430.74\n",
+       "2017-02-28                 79745050      269458.98\n",
+       "2017-03-31                122022814      414369.39\n",
+       "2017-04-30                111811117      390952.18\n",
+       "2017-05-31                171462434      566872.73\n",
+       "2017-06-30                151846239      490225.60\n",
+       "2017-07-31                188086633      566403.93\n",
+       "2017-08-31                201256615      646000.61\n",
+       "2017-09-30                200627608      700976.01\n",
+       "2017-10-31                216777857      751140.27\n",
+       "2017-11-30                347738845     1153393.22\n",
+       "2017-12-31                267059774      843199.17\n",
+       "2018-01-31                339383930     1078606.86\n",
+       "2018-02-28                314002527      966554.97\n",
+       "2018-03-31                340308004     1120678.00\n",
+       "2018-04-30                331071788     1132933.95\n",
+       "2018-05-31                325781985     1128836.69\n",
+       "2018-06-30                294998895     1011561.35\n",
+       "2018-07-31                295384504     1027383.10\n",
+       "2018-08-31                303044232      985414.28"
+      ]
+     },
+     "execution_count": 40,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "merge_order_month_sum #월별 그룹화"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "31a25ef9-f784-4544-8167-81c877012cb5",
+   "metadata": {},
+   "source": [
+    "### Grouper 집계단위\n",
+    "\n",
+    "1. ME : Monthly End (frequency)\n",
+    "2. QE : Quater End (frequency)\n",
+    "3. YE : Yearly End (frequency)\n",
+    "4. D : Calendar Day (frequency)\n",
+    "1. h : Hourly (frequency)\n",
+    "1. min : Minutely (frequency)\n",
+    "1. s : Secondly (frequency)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 41,
+   "id": "11b18c69-4cc1-46af-8617-1d8cdbf57f34",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "DatetimeIndex(['2025-01-01', '2025-01-02', '2025-01-03', '2025-01-04',\n",
+       "               '2025-01-05', '2025-01-06', '2025-01-07', '2025-01-08',\n",
+       "               '2025-01-09', '2025-01-10',\n",
+       "               ...\n",
+       "               '2025-12-22', '2025-12-23', '2025-12-24', '2025-12-25',\n",
+       "               '2025-12-26', '2025-12-27', '2025-12-28', '2025-12-29',\n",
+       "               '2025-12-30', '2025-12-31'],\n",
+       "              dtype='datetime64[ns]', length=365, freq='D')"
+      ]
+     },
+     "execution_count": 41,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "import pandas as pd\n",
+    "\n",
+    "#특정 시점부터 특정 시점까지의 데이터를 집계해서 분석하고자 할때 사용하는 매서드 함수\n",
+    "# date_range() // range(n) : n만큼의 값을 생성 -> 0~n-1 \n",
+    "\n",
+    "pd.date_range(start=\"2025-01-01\", end=\"2025-12-31\") #파이썬 리스트| 문자열 슬라이싱기능 "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 45,
+   "id": "a35604a6-c89e-4887-85f4-76b495225a57",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.plotly.v1+json": {
+       "config": {
+        "plotlyServerURL": "https://plot.ly"
+       },
+       "data": [
+        {
+         "alignmentgroup": "True",
+         "hovertemplate": "Oders Purchase Timestamp=%{x}<br>Payment Value=%{y}<extra></extra>",
+         "legendgroup": "",
+         "marker": {
+          "color": "#636efa",
+          "pattern": {
+           "shape": ""
+          }
+         },
+         "name": "",
+         "offsetgroup": "",
+         "orientation": "v",
+         "showlegend": false,
+         "textposition": "auto",
+         "type": "bar",
+         "x": [
+          "2016-10-31T00:00:00",
+          "2016-11-30T00:00:00",
+          "2016-12-31T00:00:00",
+          "2017-01-31T00:00:00",
+          "2017-02-28T00:00:00",
+          "2017-03-31T00:00:00",
+          "2017-04-30T00:00:00",
+          "2017-05-31T00:00:00",
+          "2017-06-30T00:00:00",
+          "2017-07-31T00:00:00",
+          "2017-08-31T00:00:00",
+          "2017-09-30T00:00:00",
+          "2017-10-31T00:00:00",
+          "2017-11-30T00:00:00",
+          "2017-12-31T00:00:00",
+          "2018-01-31T00:00:00",
+          "2018-02-28T00:00:00",
+          "2018-03-31T00:00:00",
+          "2018-04-30T00:00:00",
+          "2018-05-31T00:00:00",
+          "2018-06-30T00:00:00",
+          "2018-07-31T00:00:00",
+          "2018-08-31T00:00:00"
+         ],
+         "xaxis": "x",
+         "y": [
+          47271.2,
+          0,
+          19.62,
+          127430.74,
+          269458.98,
+          414369.39,
+          390952.18,
+          566872.73,
+          490225.6,
+          566403.93,
+          646000.61,
+          700976.01,
+          751140.27,
+          1153393.22,
+          843199.17,
+          1078606.86,
+          966554.97,
+          1120678,
+          1132933.95,
+          1128836.69,
+          1011561.35,
+          1027383.1,
+          985414.28
+         ],
+         "yaxis": "y"
+        }
+       ],
+       "layout": {
+        "barmode": "relative",
+        "legend": {
+         "tracegroupgap": 0
+        },
+        "template": {
+         "data": {
+          "bar": [
+           {
+            "error_x": {
+             "color": "#2a3f5f"
+            },
+            "error_y": {
+             "color": "#2a3f5f"
+            },
+            "marker": {
+             "line": {
+              "color": "#E5ECF6",
+              "width": 0.5
+             },
+             "pattern": {
+              "fillmode": "overlay",
+              "size": 10,
+              "solidity": 0.2
+             }
+            },
+            "type": "bar"
+           }
+          ],
+          "barpolar": [
+           {
+            "marker": {
+             "line": {
+              "color": "#E5ECF6",
+              "width": 0.5
+             },
+             "pattern": {
+              "fillmode": "overlay",
+              "size": 10,
+              "solidity": 0.2
+             }
+            },
+            "type": "barpolar"
+           }
+          ],
+          "carpet": [
+           {
+            "aaxis": {
+             "endlinecolor": "#2a3f5f",
+             "gridcolor": "white",
+             "linecolor": "white",
+             "minorgridcolor": "white",
+             "startlinecolor": "#2a3f5f"
+            },
+            "baxis": {
+             "endlinecolor": "#2a3f5f",
+             "gridcolor": "white",
+             "linecolor": "white",
+             "minorgridcolor": "white",
+             "startlinecolor": "#2a3f5f"
+            },
+            "type": "carpet"
+           }
+          ],
+          "choropleth": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "type": "choropleth"
+           }
+          ],
+          "contour": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "contour"
+           }
+          ],
+          "contourcarpet": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "type": "contourcarpet"
+           }
+          ],
+          "heatmap": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "heatmap"
+           }
+          ],
+          "heatmapgl": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "heatmapgl"
+           }
+          ],
+          "histogram": [
+           {
+            "marker": {
+             "pattern": {
+              "fillmode": "overlay",
+              "size": 10,
+              "solidity": 0.2
+             }
+            },
+            "type": "histogram"
+           }
+          ],
+          "histogram2d": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "histogram2d"
+           }
+          ],
+          "histogram2dcontour": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "histogram2dcontour"
+           }
+          ],
+          "mesh3d": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "type": "mesh3d"
+           }
+          ],
+          "parcoords": [
+           {
+            "line": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "parcoords"
+           }
+          ],
+          "pie": [
+           {
+            "automargin": true,
+            "type": "pie"
+           }
+          ],
+          "scatter": [
+           {
+            "fillpattern": {
+             "fillmode": "overlay",
+             "size": 10,
+             "solidity": 0.2
+            },
+            "type": "scatter"
+           }
+          ],
+          "scatter3d": [
+           {
+            "line": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatter3d"
+           }
+          ],
+          "scattercarpet": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattercarpet"
+           }
+          ],
+          "scattergeo": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattergeo"
+           }
+          ],
+          "scattergl": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattergl"
+           }
+          ],
+          "scattermapbox": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattermapbox"
+           }
+          ],
+          "scatterpolar": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatterpolar"
+           }
+          ],
+          "scatterpolargl": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatterpolargl"
+           }
+          ],
+          "scatterternary": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatterternary"
+           }
+          ],
+          "surface": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "surface"
+           }
+          ],
+          "table": [
+           {
+            "cells": {
+             "fill": {
+              "color": "#EBF0F8"
+             },
+             "line": {
+              "color": "white"
+             }
+            },
+            "header": {
+             "fill": {
+              "color": "#C8D4E3"
+             },
+             "line": {
+              "color": "white"
+             }
+            },
+            "type": "table"
+           }
+          ]
+         },
+         "layout": {
+          "annotationdefaults": {
+           "arrowcolor": "#2a3f5f",
+           "arrowhead": 0,
+           "arrowwidth": 1
+          },
+          "autotypenumbers": "strict",
+          "coloraxis": {
+           "colorbar": {
+            "outlinewidth": 0,
+            "ticks": ""
+           }
+          },
+          "colorscale": {
+           "diverging": [
+            [
+             0,
+             "#8e0152"
+            ],
+            [
+             0.1,
+             "#c51b7d"
+            ],
+            [
+             0.2,
+             "#de77ae"
+            ],
+            [
+             0.3,
+             "#f1b6da"
+            ],
+            [
+             0.4,
+             "#fde0ef"
+            ],
+            [
+             0.5,
+             "#f7f7f7"
+            ],
+            [
+             0.6,
+             "#e6f5d0"
+            ],
+            [
+             0.7,
+             "#b8e186"
+            ],
+            [
+             0.8,
+             "#7fbc41"
+            ],
+            [
+             0.9,
+             "#4d9221"
+            ],
+            [
+             1,
+             "#276419"
+            ]
+           ],
+           "sequential": [
+            [
+             0,
+             "#0d0887"
+            ],
+            [
+             0.1111111111111111,
+             "#46039f"
+            ],
+            [
+             0.2222222222222222,
+             "#7201a8"
+            ],
+            [
+             0.3333333333333333,
+             "#9c179e"
+            ],
+            [
+             0.4444444444444444,
+             "#bd3786"
+            ],
+            [
+             0.5555555555555556,
+             "#d8576b"
+            ],
+            [
+             0.6666666666666666,
+             "#ed7953"
+            ],
+            [
+             0.7777777777777778,
+             "#fb9f3a"
+            ],
+            [
+             0.8888888888888888,
+             "#fdca26"
+            ],
+            [
+             1,
+             "#f0f921"
+            ]
+           ],
+           "sequentialminus": [
+            [
+             0,
+             "#0d0887"
+            ],
+            [
+             0.1111111111111111,
+             "#46039f"
+            ],
+            [
+             0.2222222222222222,
+             "#7201a8"
+            ],
+            [
+             0.3333333333333333,
+             "#9c179e"
+            ],
+            [
+             0.4444444444444444,
+             "#bd3786"
+            ],
+            [
+             0.5555555555555556,
+             "#d8576b"
+            ],
+            [
+             0.6666666666666666,
+             "#ed7953"
+            ],
+            [
+             0.7777777777777778,
+             "#fb9f3a"
+            ],
+            [
+             0.8888888888888888,
+             "#fdca26"
+            ],
+            [
+             1,
+             "#f0f921"
+            ]
+           ]
+          },
+          "colorway": [
+           "#636efa",
+           "#EF553B",
+           "#00cc96",
+           "#ab63fa",
+           "#FFA15A",
+           "#19d3f3",
+           "#FF6692",
+           "#B6E880",
+           "#FF97FF",
+           "#FECB52"
+          ],
+          "font": {
+           "color": "#2a3f5f"
+          },
+          "geo": {
+           "bgcolor": "white",
+           "lakecolor": "white",
+           "landcolor": "#E5ECF6",
+           "showlakes": true,
+           "showland": true,
+           "subunitcolor": "white"
+          },
+          "hoverlabel": {
+           "align": "left"
+          },
+          "hovermode": "closest",
+          "mapbox": {
+           "style": "light"
+          },
+          "paper_bgcolor": "white",
+          "plot_bgcolor": "#E5ECF6",
+          "polar": {
+           "angularaxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           },
+           "bgcolor": "#E5ECF6",
+           "radialaxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           }
+          },
+          "scene": {
+           "xaxis": {
+            "backgroundcolor": "#E5ECF6",
+            "gridcolor": "white",
+            "gridwidth": 2,
+            "linecolor": "white",
+            "showbackground": true,
+            "ticks": "",
+            "zerolinecolor": "white"
+           },
+           "yaxis": {
+            "backgroundcolor": "#E5ECF6",
+            "gridcolor": "white",
+            "gridwidth": 2,
+            "linecolor": "white",
+            "showbackground": true,
+            "ticks": "",
+            "zerolinecolor": "white"
+           },
+           "zaxis": {
+            "backgroundcolor": "#E5ECF6",
+            "gridcolor": "white",
+            "gridwidth": 2,
+            "linecolor": "white",
+            "showbackground": true,
+            "ticks": "",
+            "zerolinecolor": "white"
+           }
+          },
+          "shapedefaults": {
+           "line": {
+            "color": "#2a3f5f"
+           }
+          },
+          "ternary": {
+           "aaxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           },
+           "baxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           },
+           "bgcolor": "#E5ECF6",
+           "caxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           }
+          },
+          "title": {
+           "x": 0.05
+          },
+          "xaxis": {
+           "automargin": true,
+           "gridcolor": "white",
+           "linecolor": "white",
+           "ticks": "",
+           "title": {
+            "standoff": 15
+           },
+           "zerolinecolor": "white",
+           "zerolinewidth": 2
+          },
+          "yaxis": {
+           "automargin": true,
+           "gridcolor": "white",
+           "linecolor": "white",
+           "ticks": "",
+           "title": {
+            "standoff": 15
+           },
+           "zerolinecolor": "white",
+           "zerolinewidth": 2
+          }
+         }
+        },
+        "title": {
+         "text": "Monthly Payment Value Sum"
+        },
+        "xaxis": {
+         "anchor": "y",
+         "domain": [
+          0,
+          1
+         ],
+         "tickangle": -45,
+         "title": {
+          "text": "Oders Purchase Timestamp"
+         }
+        },
+        "yaxis": {
+         "anchor": "x",
+         "domain": [
+          0,
+          1
+         ],
+         "title": {
+          "text": "Payment Value"
+         }
+        }
+       }
+      },
+      "image/png": "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",
+      "text/html": [
+       "<div>                            <div id=\"366e9605-ed82-43df-9f9d-41752c78b6ba\" class=\"plotly-graph-div\" style=\"height:525px; width:100%;\"></div>            <script type=\"text/javascript\">                require([\"plotly\"], function(Plotly) {                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById(\"366e9605-ed82-43df-9f9d-41752c78b6ba\")) {                    Plotly.newPlot(                        \"366e9605-ed82-43df-9f9d-41752c78b6ba\",                        [{\"alignmentgroup\":\"True\",\"hovertemplate\":\"Oders Purchase Timestamp=%{x}\\u003cbr\\u003ePayment Value=%{y}\\u003cextra\\u003e\\u003c\\u002fextra\\u003e\",\"legendgroup\":\"\",\"marker\":{\"color\":\"#636efa\",\"pattern\":{\"shape\":\"\"}},\"name\":\"\",\"offsetgroup\":\"\",\"orientation\":\"v\",\"showlegend\":false,\"textposition\":\"auto\",\"x\":[\"2016-10-31T00:00:00\",\"2016-11-30T00:00:00\",\"2016-12-31T00:00:00\",\"2017-01-31T00:00:00\",\"2017-02-28T00:00:00\",\"2017-03-31T00:00:00\",\"2017-04-30T00:00:00\",\"2017-05-31T00:00:00\",\"2017-06-30T00:00:00\",\"2017-07-31T00:00:00\",\"2017-08-31T00:00:00\",\"2017-09-30T00:00:00\",\"2017-10-31T00:00:00\",\"2017-11-30T00:00:00\",\"2017-12-31T00:00:00\",\"2018-01-31T00:00:00\",\"2018-02-28T00:00:00\",\"2018-03-31T00:00:00\",\"2018-04-30T00:00:00\",\"2018-05-31T00:00:00\",\"2018-06-30T00:00:00\",\"2018-07-31T00:00:00\",\"2018-08-31T00:00:00\"],\"xaxis\":\"x\",\"y\":[47271.2,0.0,19.62,127430.74,269458.98,414369.39,390952.18,566872.73,490225.6,566403.93,646000.61,700976.01,751140.27,1153393.22,843199.17,1078606.86,966554.97,1120678.0,1132933.95,1128836.69,1011561.35,1027383.1,985414.28],\"yaxis\":\"y\",\"type\":\"bar\"}],                        {\"template\":{\"data\":{\"histogram2dcontour\":[{\"type\":\"histogram2dcontour\",\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]]}],\"choropleth\":[{\"type\":\"choropleth\",\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}}],\"histogram2d\":[{\"type\":\"histogram2d\",\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]]}],\"heatmap\":[{\"type\":\"heatmap\",\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]]}],\"heatmapgl\":[{\"type\":\"heatmapgl\",\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]]}],\"contourcarpet\":[{\"type\":\"contourcarpet\",\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}}],\"contour\":[{\"type\":\"contour\",\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]]}],\"surface\":[{\"type\":\"surface\",\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]]}],\"mesh3d\":[{\"type\":\"mesh3d\",\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}}],\"scatter\":[{\"fillpattern\":{\"fillmode\":\"overlay\",\"size\":10,\"solidity\":0.2},\"type\":\"scatter\"}],\"parcoords\":[{\"type\":\"parcoords\",\"line\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}}}],\"scatterpolargl\":[{\"type\":\"scatterpolargl\",\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}}}],\"bar\":[{\"error_x\":{\"color\":\"#2a3f5f\"},\"error_y\":{\"color\":\"#2a3f5f\"},\"marker\":{\"line\":{\"color\":\"#E5ECF6\",\"width\":0.5},\"pattern\":{\"fillmode\":\"overlay\",\"size\":10,\"solidity\":0.2}},\"type\":\"bar\"}],\"scattergeo\":[{\"type\":\"scattergeo\",\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}}}],\"scatterpolar\":[{\"type\":\"scatterpolar\",\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}}}],\"histogram\":[{\"marker\":{\"pattern\":{\"fillmode\":\"overlay\",\"size\":10,\"solidity\":0.2}},\"type\":\"histogram\"}],\"scattergl\":[{\"type\":\"scattergl\",\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}}}],\"scatter3d\":[{\"type\":\"scatter3d\",\"line\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}}}],\"scattermapbox\":[{\"type\":\"scattermapbox\",\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}}}],\"scatterternary\":[{\"type\":\"scatterternary\",\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}}}],\"scattercarpet\":[{\"type\":\"scattercarpet\",\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}}}],\"carpet\":[{\"aaxis\":{\"endlinecolor\":\"#2a3f5f\",\"gridcolor\":\"white\",\"linecolor\":\"white\",\"minorgridcolor\":\"white\",\"startlinecolor\":\"#2a3f5f\"},\"baxis\":{\"endlinecolor\":\"#2a3f5f\",\"gridcolor\":\"white\",\"linecolor\":\"white\",\"minorgridcolor\":\"white\",\"startlinecolor\":\"#2a3f5f\"},\"type\":\"carpet\"}],\"table\":[{\"cells\":{\"fill\":{\"color\":\"#EBF0F8\"},\"line\":{\"color\":\"white\"}},\"header\":{\"fill\":{\"color\":\"#C8D4E3\"},\"line\":{\"color\":\"white\"}},\"type\":\"table\"}],\"barpolar\":[{\"marker\":{\"line\":{\"color\":\"#E5ECF6\",\"width\":0.5},\"pattern\":{\"fillmode\":\"overlay\",\"size\":10,\"solidity\":0.2}},\"type\":\"barpolar\"}],\"pie\":[{\"automargin\":true,\"type\":\"pie\"}]},\"layout\":{\"autotypenumbers\":\"strict\",\"colorway\":[\"#636efa\",\"#EF553B\",\"#00cc96\",\"#ab63fa\",\"#FFA15A\",\"#19d3f3\",\"#FF6692\",\"#B6E880\",\"#FF97FF\",\"#FECB52\"],\"font\":{\"color\":\"#2a3f5f\"},\"hovermode\":\"closest\",\"hoverlabel\":{\"align\":\"left\"},\"paper_bgcolor\":\"white\",\"plot_bgcolor\":\"#E5ECF6\",\"polar\":{\"bgcolor\":\"#E5ECF6\",\"angularaxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"},\"radialaxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"}},\"ternary\":{\"bgcolor\":\"#E5ECF6\",\"aaxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"},\"baxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"},\"caxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"}},\"coloraxis\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"colorscale\":{\"sequential\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"sequentialminus\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"diverging\":[[0,\"#8e0152\"],[0.1,\"#c51b7d\"],[0.2,\"#de77ae\"],[0.3,\"#f1b6da\"],[0.4,\"#fde0ef\"],[0.5,\"#f7f7f7\"],[0.6,\"#e6f5d0\"],[0.7,\"#b8e186\"],[0.8,\"#7fbc41\"],[0.9,\"#4d9221\"],[1,\"#276419\"]]},\"xaxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\",\"title\":{\"standoff\":15},\"zerolinecolor\":\"white\",\"automargin\":true,\"zerolinewidth\":2},\"yaxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\",\"title\":{\"standoff\":15},\"zerolinecolor\":\"white\",\"automargin\":true,\"zerolinewidth\":2},\"scene\":{\"xaxis\":{\"backgroundcolor\":\"#E5ECF6\",\"gridcolor\":\"white\",\"linecolor\":\"white\",\"showbackground\":true,\"ticks\":\"\",\"zerolinecolor\":\"white\",\"gridwidth\":2},\"yaxis\":{\"backgroundcolor\":\"#E5ECF6\",\"gridcolor\":\"white\",\"linecolor\":\"white\",\"showbackground\":true,\"ticks\":\"\",\"zerolinecolor\":\"white\",\"gridwidth\":2},\"zaxis\":{\"backgroundcolor\":\"#E5ECF6\",\"gridcolor\":\"white\",\"linecolor\":\"white\",\"showbackground\":true,\"ticks\":\"\",\"zerolinecolor\":\"white\",\"gridwidth\":2}},\"shapedefaults\":{\"line\":{\"color\":\"#2a3f5f\"}},\"annotationdefaults\":{\"arrowcolor\":\"#2a3f5f\",\"arrowhead\":0,\"arrowwidth\":1},\"geo\":{\"bgcolor\":\"white\",\"landcolor\":\"#E5ECF6\",\"subunitcolor\":\"white\",\"showland\":true,\"showlakes\":true,\"lakecolor\":\"white\"},\"title\":{\"x\":0.05},\"mapbox\":{\"style\":\"light\"}}},\"xaxis\":{\"anchor\":\"y\",\"domain\":[0.0,1.0],\"title\":{\"text\":\"Oders Purchase Timestamp\"},\"tickangle\":-45},\"yaxis\":{\"anchor\":\"x\",\"domain\":[0.0,1.0],\"title\":{\"text\":\"Payment Value\"}},\"legend\":{\"tracegroupgap\":0},\"title\":{\"text\":\"Monthly Payment Value Sum\"},\"barmode\":\"relative\"},                        {\"responsive\": true}                    ).then(function(){\n",
+       "                            \n",
+       "var gd = document.getElementById('366e9605-ed82-43df-9f9d-41752c78b6ba');\n",
+       "var x = new MutationObserver(function (mutations, observer) {{\n",
+       "        var display = window.getComputedStyle(gd).display;\n",
+       "        if (!display || display === 'none') {{\n",
+       "            console.log([gd, 'removed!']);\n",
+       "            Plotly.purge(gd);\n",
+       "            observer.disconnect();\n",
+       "        }}\n",
+       "}});\n",
+       "\n",
+       "// Listen for the removal of the full notebook cells\n",
+       "var notebookContainer = gd.closest('#notebook-container');\n",
+       "if (notebookContainer) {{\n",
+       "    x.observe(notebookContainer, {childList: true});\n",
+       "}}\n",
+       "\n",
+       "// Listen for the clearing of the current output cell\n",
+       "var outputEl = gd.closest('.output');\n",
+       "if (outputEl) {{\n",
+       "    x.observe(outputEl, {childList: true});\n",
+       "}}\n",
+       "\n",
+       "                        })                };                });            </script>        </div>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "import plotly.express as px\n",
+    "\n",
+    "fig = px.bar(\n",
+    "    x= merge_order_month_sum.index,\n",
+    "    y= merge_order_month_sum[\"payment_value\"],\n",
+    "    title= \"Monthly Payment Value Sum\",\n",
+    "    labels = {\n",
+    "        \"x\" : \"Oders Purchase Timestamp\",\n",
+    "        \"y\" : \"Payment Value\"\n",
+    "    }\n",
+    ")\n",
+    "\n",
+    "fig.update_layout(\n",
+    "    xaxis_tickangle =-45\n",
+    ")\n",
+    "\n",
+    "fig.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 46,
+   "id": "8ea11434-2f3b-4e7e-9fd4-e30d40282130",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "np.float64(670420.9934782608)"
+      ]
+     },
+     "execution_count": 46,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "merge_order_month_sum[\"payment_value\"].mean()  #평군의 함정 -> 이상치때문에 전체 평균 왜곡"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 47,
+   "id": "38621834-5e61-4eb1-b99a-a137d71d0be7",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "order_purchase_timestamp\n",
+       "2016-10-31      47271.20\n",
+       "2016-11-30          0.00\n",
+       "2016-12-31         19.62\n",
+       "2017-01-31     127430.74\n",
+       "2017-02-28     269458.98\n",
+       "2017-03-31     414369.39\n",
+       "2017-04-30     390952.18\n",
+       "2017-05-31     566872.73\n",
+       "2017-06-30     490225.60\n",
+       "2017-07-31     566403.93\n",
+       "2017-08-31     646000.61\n",
+       "2017-09-30     700976.01\n",
+       "2017-10-31     751140.27\n",
+       "2017-11-30    1153393.22\n",
+       "2017-12-31     843199.17\n",
+       "2018-01-31    1078606.86\n",
+       "2018-02-28     966554.97\n",
+       "2018-03-31    1120678.00\n",
+       "2018-04-30    1132933.95\n",
+       "2018-05-31    1128836.69\n",
+       "2018-06-30    1011561.35\n",
+       "2018-07-31    1027383.10\n",
+       "2018-08-31     985414.28\n",
+       "Freq: ME, Name: payment_value, dtype: float64"
+      ]
+     },
+     "execution_count": 47,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "merge_order_month_sum[\"payment_value\"] #슬라이싱 기능으로 변형시킬 수 있음"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 48,
+   "id": "cb8c2e68-3ef5-4ab7-9af9-3f31de543e11",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "order_purchase_timestamp\n",
+       "2017-01-31     127430.74\n",
+       "2017-02-28     269458.98\n",
+       "2017-03-31     414369.39\n",
+       "2017-04-30     390952.18\n",
+       "2017-05-31     566872.73\n",
+       "2017-06-30     490225.60\n",
+       "2017-07-31     566403.93\n",
+       "2017-08-31     646000.61\n",
+       "2017-09-30     700976.01\n",
+       "2017-10-31     751140.27\n",
+       "2017-11-30    1153393.22\n",
+       "2017-12-31     843199.17\n",
+       "2018-01-31    1078606.86\n",
+       "2018-02-28     966554.97\n",
+       "2018-03-31    1120678.00\n",
+       "2018-04-30    1132933.95\n",
+       "2018-05-31    1128836.69\n",
+       "2018-06-30    1011561.35\n",
+       "2018-07-31    1027383.10\n",
+       "2018-08-31     985414.28\n",
+       "Freq: ME, Name: payment_value, dtype: float64"
+      ]
+     },
+     "execution_count": 48,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "merge_order_month_sum[\"payment_value\"][3:] #슬라이싱 기능으로 변형시킬 수 있음 : 이상치 빼고 묶기"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 49,
+   "id": "8ae31862-c654-48e5-8929-1d6afd0924d8",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "np.float64(768619.6014999999)"
+      ]
+     },
+     "execution_count": 49,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#이상치(Outlier)를 제외한 값들의 평균치\n",
+    "merge_order_month_sum[\"payment_value\"][3:].mean()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 51,
+   "id": "7f90f74f-1eff-4fff-9ca6-3873ec08c79e",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>index</th>\n",
+       "      <th>payment_value</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>order_purchase_timestamp</th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>2017-11-30</th>\n",
+       "      <td>347738845</td>\n",
+       "      <td>1153393.22</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                              index  payment_value\n",
+       "order_purchase_timestamp                          \n",
+       "2017-11-30                347738845     1153393.22"
+      ]
+     },
+     "execution_count": 51,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# 최대 거래액을 기록한 월\n",
+    "# 비교 연산의 참인 값을 구하기\n",
+    "\n",
+    "merge_order_month_sum[merge_order_month_sum[\"payment_value\"] == merge_order_month_sum[\"payment_value\"].max()]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "6666bad4-7d24-4bc8-9c3c-5d69792498ff",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python [conda env:base] *",
+   "language": "python",
+   "name": "conda-base-py"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.13.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
