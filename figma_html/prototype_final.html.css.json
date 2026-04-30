@@ -1,0 +1,62 @@
+{
+  "meta": {
+    "source": "https://www.figma.com/design/yElTzCb1ZEX7KVOVhZc3hy/AMPM-Wire-Frame?node-id=628-3299&t=8B5iedmkUTyqdtgE-0",
+    "pageName": "0.prototype_final",
+    "note": "Single-bundle delivery in html.css.json form",
+    "screens": [
+      { "id": "628:3299", "name": "1.Mainpage" },
+      { "id": "199:6358", "name": "2.product_list_page" },
+      { "id": "199:6185", "name": "3.Eventpage" },
+      { "id": "199:6048", "name": "4.ProductDetailPage_sample" },
+      { "id": "199:7030", "name": "5.CouponPage" },
+      { "id": "199:6880", "name": "6.cartpage" }
+    ]
+  },
+  "html": "<div id=\"app\" class=\"app\">\\n  <header class=\"status-wrap\">\\n    <div class=\"status-bar\">9:41</div>\\n    <div class=\"top-nav\">\\n      <button data-action=\"back\">&#x2039;</button>\\n      <h1 id=\"screen-title\">메인</h1>\\n      <div class=\"icons\">\\n        <button data-action=\"open-coupon\">쿠폰</button>\\n        <button data-action=\"open-cart\">장바구니</button>\\n      </div>\\n    </div>\\n  </header>\\n\\n  <main id=\"viewport\">\\n    <section id=\"screen-main\" class=\"screen active\">\\n      <article class=\"hero\">\\n        <h2>오늘 당 충전이 시급하다면?</h2>\\n        <p>스테디 인기맛 추천</p>\\n        <button data-action=\"open-coupon-popup-cream\">지금 바로 할인 쿠폰 받기</button>\\n      </article>\\n      <section class=\"quick-menu\">\\n        <button>픽업</button><button>배달</button><button>예약</button><button>CU BAR</button><button>홈배송</button>\\n      </section>\\n      <section class=\"report-card\">\\n        <h3>이번 주 개인 소비 리포트</h3>\\n        <div class=\"report-grid\">\\n          <div>가장 많이 구매한 상품: 삼각김밥</div>\\n          <div>이번 주 소비 금액: 23,500원</div>\\n        </div>\\n      </section>\\n      <section class=\"service-panel\">\\n        <h3>찾는 서비스가 있나요?</h3>\\n        <div class=\"service-grid\">\\n          <button>출석체크</button><button>이벤트</button><button>기획전</button><button>포인트충전소</button><button>러닝 멤버스</button>\\n          <button>쿠폰함</button><button>점포결제</button><button>택배예약</button><button>CU구독</button><button>CU보</button>\\n        </div>\\n      </section>\\n    </section>\\n\\n    <section id=\"screen-list\" class=\"screen\">\\n      <h2>상품목록</h2>\\n      <div class=\"product-list\" id=\"product-list\"></div>\\n    </section>\\n\\n    <section id=\"screen-event\" class=\"screen\">\\n      <h2>이벤트페이지</h2>\\n      <div class=\"event-banner\">연세우유 크림빵 TOP 4 / 커피 제품 TOP 5</div>\\n      <div class=\"event-products\" id=\"event-products\"></div>\\n    </section>\\n\\n    <section id=\"screen-detail\" class=\"screen\">\\n      <h2>상품상세</h2>\\n      <div class=\"detail-image\"></div>\\n      <p class=\"detail-title\">삼립)황치즈생 1,300원</p>\\n      <button data-action=\"add-to-cart\">장바구니 담기</button>\\n    </section>\\n\\n    <section id=\"screen-coupon\" class=\"screen\">\\n      <h2>쿠폰함</h2>\\n      <div class=\"coupon-tabs\">\\n        <button class=\"on\">전체</button><button>구독</button><button>할인/적립</button><button>교환권</button><button>금액권</button><button>배달/배송비</button>\\n      </div>\\n      <div id=\"coupon-stack\"></div>\\n    </section>\\n\\n    <section id=\"screen-cart\" class=\"screen\">\\n      <h2>장바구니</h2>\\n      <div id=\"cart-stack\"></div>\\n      <div class=\"receipt\">\\n        <div>주문금액 <span id=\"sum-order\">0원</span></div>\\n        <div>상품할인 <span id=\"sum-discount\">0원</span></div>\\n        <div class=\"total\">결제 예정금액 <span id=\"sum-total\">0원</span></div>\\n      </div>\\n      <button class=\"buy-btn\">구매하기</button>\\n    </section>\\n  </main>\\n\\n  <footer class=\"bottom-tab\">\\n    <button data-go=\"main\">홈</button>\\n    <button data-go=\"list\">상품목록</button>\\n    <button data-go=\"event\">QR</button>\\n    <button data-go=\"coupon\">My CU</button>\\n    <button data-go=\"cart\">전체보기</button>\\n  </footer>\\n\\n  <div id=\"modal-layer\">\\n    <div id=\"popup-cart-done\" class=\"popup\">장바구니에 담겼습니다.</div>\\n    <div id=\"popup-coupon-issued\" class=\"popup\">쿠폰이 발급되었습니다.</div>\\n    <div id=\"popup-coupon-select\" class=\"popup\">쿠폰 선택창</div>\\n    <div id=\"popup-coupon-drink\" class=\"popup\">[4월 꿀할인] 음료 10%</div>\\n    <div id=\"popup-coupon-ramen\" class=\"popup\">[4월 꿀할인] 라면/간편식 10%</div>\\n    <div id=\"popup-coupon-cream\" class=\"popup\">[4월 꿀할인] 황치즈생크림빵 20%</div>\\n    <div id=\"popup-coupon-dessert\" class=\"popup\">[4월 꿀할인] 디저트/빵 20%</div>\\n    <div id=\"popup-coupon-lunch\" class=\"popup\">[4월 꿀할인] 도시락/김밥 20%</div>\\n  </div>\\n</div>",
+  "css": ":root { --cu:#a7c503; --bg:#f5f5f5; --ink:#141414; --sub:#7e7e7e; --line:#dcdcdc; --purple:#7d4be5; }\\n*{box-sizing:border-box} body{margin:0;background:#eee;font-family:Inter,'Noto Sans KR',sans-serif;color:var(--ink)}\\n.app{width:402px;min-height:100vh;margin:0 auto;background:#fff;border-radius:30px;overflow:hidden;position:relative}\\n.status-wrap{position:sticky;top:0;z-index:30;background:#fff}\\n.status-bar{height:37px;display:flex;align-items:center;justify-content:center;font-weight:600}\\n.top-nav{height:42px;padding:0 21px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f0f0}\\n.top-nav h1{margin:0;font-size:17px;font-weight:600}\\nmain{padding-bottom:108px;background:var(--bg)}\\n.screen{display:none;padding:12px 20px 24px}\\n.screen.active{display:block}\\n.hero{background:linear-gradient(160deg,#f6f3e7,#f0ebd6);border-radius:16px;padding:18px;margin-top:8px}\\n.hero h2{font-size:32px;line-height:1.05;margin:0 0 8px}\\n.hero button{height:42px;border:0;background:var(--cu);color:#fff;border-radius:24px;padding:0 16px;font-weight:700;cursor:pointer}\\n.quick-menu,.service-grid{display:grid;gap:8px}.quick-menu{grid-template-columns:repeat(5,1fr);margin-top:12px}.service-grid{grid-template-columns:repeat(5,1fr)}\\n.quick-menu button,.service-grid button{height:44px;border:1px solid var(--line);background:#fff;border-radius:12px;font-size:11px}\\n.report-card,.service-panel,.receipt{background:#fff;border:1px solid #ebedf5;border-radius:16px;padding:14px;margin-top:12px}\\n.report-grid{display:grid;gap:8px}.product-list,.event-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}\\n.product{background:#fff;border-radius:12px;padding:10px;border:1px solid #efefef}\\n.bottom-tab{position:absolute;left:0;right:0;bottom:0;height:92px;display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border-top:1px solid #e6e6e6}\\n.bottom-tab button{border:0;background:transparent;font-size:11px;cursor:pointer}\\n#modal-layer{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.35);z-index:99}\\n#modal-layer.open{display:grid}\\n.popup{display:none;width:min(380px,92vw);background:#d7e687;border:2.5px solid #5ed4bc;border-radius:26px;padding:24px;font-size:20px;font-weight:700;text-align:center}\\n.popup.open{display:block}\\n.buy-btn{width:100%;height:59px;border:0;border-radius:30px;background:var(--cu);color:#fff;font-size:24px;cursor:pointer;margin-top:14px}\\n.coupon-tabs{display:flex;flex-wrap:wrap;gap:6px}.coupon-tabs button{height:32px;border:0;border-radius:16px;padding:0 12px;background:#f6f6f6;color:#878787}.coupon-tabs .on{background:#40d673;color:#fff}\\n",
+  "json": {
+    "state": {
+      "activeScreen": "main",
+      "modalOpen": false,
+      "activePopup": null,
+      "cart": [],
+      "couponFilter": "all"
+    },
+    "products": [
+      { "id": "p1", "name": "삼립)황치즈생", "price": 1300, "category": "디저트" },
+      { "id": "p2", "name": "연세우유생크림빵", "price": 2800, "category": "디저트" },
+      { "id": "p3", "name": "칸타타 아메리카노", "price": 1500, "category": "음료" },
+      { "id": "p4", "name": "신라면 건면", "price": 1800, "category": "라면/간편식" },
+      { "id": "p5", "name": "한끼)백년한우도시락", "price": 5700, "category": "도시락/김밥" }
+    ],
+    "coupons": [
+      { "id": "c0", "title": "신규가입자 5% 할인쿠폰", "type": "일반", "discountRate": 5, "expires": "2026-04-30" },
+      { "id": "c1", "title": "[4월 꿀할인] 음료", "type": "음료", "discountRate": 10, "expires": "2026-04-30" },
+      { "id": "c2", "title": "[4월 꿀할인] 라면/간편식", "type": "라면/간편식", "discountRate": 10, "expires": "2026-04-30" },
+      { "id": "c3", "title": "[4월 꿀할인] 황치즈생크림빵", "type": "디저트", "discountRate": 20, "expires": "2026-04-30" },
+      { "id": "c4", "title": "[4월 꿀할인] 디저트/빵", "type": "디저트", "discountRate": 20, "expires": "2026-04-30" },
+      { "id": "c5", "title": "[4월 꿀할인] 도시락/김밥", "type": "도시락/김밥", "discountRate": 20, "expires": "2026-04-30" }
+    ],
+    "interactions": [
+      { "event": "click", "target": "[data-go='main']", "do": "setScreen('main')" },
+      { "event": "click", "target": "[data-go='list']", "do": "setScreen('list')" },
+      { "event": "click", "target": "[data-go='event']", "do": "setScreen('event')" },
+      { "event": "click", "target": "[data-go='coupon']", "do": "setScreen('coupon')" },
+      { "event": "click", "target": "[data-go='cart']", "do": "setScreen('cart')" },
+      { "event": "click", "target": "[data-action='add-to-cart']", "do": "addToCart(currentProduct); openPopup('popup-cart-done')" },
+      { "event": "click", "target": "[data-action='open-coupon-popup-cream']", "do": "issueCoupon('c3'); openPopup('popup-coupon-cream')" },
+      { "event": "click", "target": "#modal-layer", "do": "closePopup()" }
+    ],
+    "prototypeNodes": {
+      "main": "628:3299",
+      "list": "199:6358",
+      "event": "199:6185",
+      "detail": "199:6048",
+      "coupon": "199:7030",
+      "cart": "199:6880",
+      "popupCartDone": "264:2036",
+      "popupCouponIssued": "264:2035",
+      "popupCouponSelect": "508:2600"
+    }
+  }
+}

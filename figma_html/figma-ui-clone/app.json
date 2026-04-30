@@ -1,0 +1,11 @@
+{
+  "note": "Clone-only build. Originals untouched.",
+  "screens": {
+    "main": "../figma UI/main.png.png",
+    "list": "../figma UI/list.png.png",
+    "event": "../figma UI/event.png.png",
+    "detail": "../figma UI/detail.png.png",
+    "coupon": "../figma UI/coupon.png.png",
+    "cart": "../figma UI/cart.png.png"
+  }
+}
