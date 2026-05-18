@@ -1,0 +1,188 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #e9e9e9;
+  font-family: Inter, "Noto Sans KR", sans-serif;
+}
+
+.app {
+  position: relative;
+  width: 402px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.screen {
+  display: none;
+  width: 100%;
+  position: relative;
+}
+
+.screen.active {
+  display: block;
+}
+
+.screen img {
+  display: block;
+  width: 402px;
+  height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.hs {
+  position: absolute;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Bottom tab clickable areas */
+.hotspots {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 402px;
+  height: 96px;
+  z-index: 50;
+}
+
+.tab {
+  position: absolute;
+  bottom: 0;
+  height: 92px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tab-main {
+  left: 0;
+  width: 80px;
+}
+.tab-list {
+  left: 80px;
+  width: 80px;
+}
+.tab-event {
+  left: 160px;
+  width: 82px;
+}
+.tab-coupon {
+  left: 242px;
+  width: 80px;
+}
+.tab-cart {
+  left: 322px;
+  width: 80px;
+}
+
+.overlay-card {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 380px;
+  min-height: 68px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid #5ed4bc;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 90;
+  pointer-events: auto;
+}
+
+.overlay-card h4 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+.overlay-card p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.popup-layer {
+  position: fixed;
+  inset: 0;
+  display: none;
+  background: rgba(0, 0, 0, 0.25);
+  z-index: 100;
+}
+
+.popup-layer.open {
+  display: block;
+}
+
+.popup-box {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  padding: 28px 20px;
+  border-radius: 24px;
+  background: #d9d9d9;
+  border: 3px solid #a7c503;
+  text-align: center;
+}
+
+.popup-box.move-in-top {
+  animation: moveInTop 240ms ease-out;
+}
+
+@keyframes moveInTop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.popup-box strong {
+  display: block;
+  font-size: 30px;
+  margin-bottom: 8px;
+}
+
+.coupon-select {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 220px;
+  background: #fff;
+  border: 1px solid #bfbfbf;
+}
+
+.coupon-option {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #bfbfbf;
+  background: #fff;
+  padding: 12px 8px;
+  font-size: 12px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.coupon-option.off {
+  color: #bfbfbf;
+  cursor: not-allowed;
+}
+
+.coupon-option.on {
+  color: #000;
+}
+
+.coupon-badge {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #5a5a5a;
+}

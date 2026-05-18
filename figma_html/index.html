@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>prototype_final</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="app" class="app">
+      <header class="status-wrap">
+        <div class="status-bar">9:41</div>
+        <div class="top-nav">
+          <button data-action="back">&#x2039;</button>
+          <h1 id="screen-title">메인</h1>
+          <div class="icons">
+            <button data-action="open-coupon">쿠폰</button>
+            <button data-action="open-cart">장바구니</button>
+          </div>
+        </div>
+      </header>
+
+      <main id="viewport">
+        <section id="screen-main" class="screen active">
+          <article class="hero">
+            <h2>오늘 당 충전이 시급하다면?</h2>
+            <p>스테디 인기맛 추천</p>
+            <button data-action="open-coupon-popup-cream">
+              지금 바로 할인 쿠폰 받기
+            </button>
+          </article>
+          <section class="quick-menu">
+            <button>픽업</button><button>배달</button><button>예약</button
+            ><button>CU BAR</button><button>홈배송</button>
+          </section>
+          <section class="report-card">
+            <h3>이번 주 개인 소비 리포트</h3>
+            <div class="report-grid">
+              <div>가장 많이 구매한 상품: 삼각김밥</div>
+              <div>이번 주 소비 금액: 23,500원</div>
+            </div>
+          </section>
+          <section class="service-panel">
+            <h3>찾는 서비스가 있나요?</h3>
+            <div class="service-grid">
+              <button>출석체크</button><button>이벤트</button
+              ><button>기획전</button><button>포인트충전소</button
+              ><button>러닝 멤버스</button> <button>쿠폰함</button
+              ><button>점포결제</button><button>택배예약</button
+              ><button>CU구독</button><button>CU보</button>
+            </div>
+          </section>
+        </section>
+
+        <section id="screen-list" class="screen">
+          <h2>상품목록</h2>
+          <div class="product-list" id="product-list"></div>
+        </section>
+
+        <section id="screen-event" class="screen">
+          <h2>이벤트페이지</h2>
+          <div class="event-banner">
+            연세우유 크림빵 TOP 4 / 커피 제품 TOP 5
+          </div>
+          <div class="event-products" id="event-products"></div>
+        </section>
+
+        <section id="screen-detail" class="screen">
+          <h2>상품상세</h2>
+          <div class="detail-image"></div>
+          <p class="detail-title">삼립)황치즈생 1,300원</p>
+          <button data-action="add-to-cart">장바구니 담기</button>
+        </section>
+
+        <section id="screen-coupon" class="screen">
+          <h2>쿠폰함</h2>
+          <div class="coupon-tabs">
+            <button class="on">전체</button><button>구독</button
+            ><button>할인/적립</button><button>교환권</button
+            ><button>금액권</button><button>배달/배송비</button>
+          </div>
+          <div id="coupon-stack"></div>
+        </section>
+
+        <section id="screen-cart" class="screen">
+          <h2>장바구니</h2>
+          <div id="cart-stack"></div>
+          <div class="receipt">
+            <div>주문금액 <span id="sum-order">0원</span></div>
+            <div>상품할인 <span id="sum-discount">0원</span></div>
+            <div class="total">
+              결제 예정금액 <span id="sum-total">0원</span>
+            </div>
+          </div>
+          <button class="buy-btn">구매하기</button>
+        </section>
+      </main>
+
+      <footer class="bottom-tab">
+        <button data-go="main">홈</button>
+        <button data-go="list">상품목록</button>
+        <button data-go="event">QR</button>
+        <button data-go="coupon">My CU</button>
+        <button data-go="cart">전체보기</button>
+      </footer>
+
+      <div id="modal-layer">
+        <div id="popup-cart-done" class="popup">장바구니에 담겼습니다.</div>
+        <div id="popup-coupon-issued" class="popup">쿠폰이 발급되었습니다.</div>
+        <div id="popup-coupon-select" class="popup">쿠폰 선택창</div>
+        <div id="popup-coupon-drink" class="popup">[4월 꿀할인] 음료 10%</div>
+        <div id="popup-coupon-ramen" class="popup">
+          [4월 꿀할인] 라면/간편식 10%
+        </div>
+        <div id="popup-coupon-cream" class="popup">
+          [4월 꿀할인] 황치즈생크림빵 20%
+        </div>
+        <div id="popup-coupon-dessert" class="popup">
+          [4월 꿀할인] 디저트/빵 20%
+        </div>
+        <div id="popup-coupon-lunch" class="popup">
+          [4월 꿀할인] 도시락/김밥 20%
+        </div>
+      </div>
+    </div>
+    <script src="./app.js"></script>
+  </body>
+</html>
