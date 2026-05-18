@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Figma UI Clone</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section id="screen-main" class="screen active">
+        <img src="../figma UI/main.png.png" alt="main" />
+      </section>
+      <section id="screen-list" class="screen">
+        <img src="../figma UI/list.png.png" alt="list" />
+      </section>
+      <section id="screen-event" class="screen">
+        <img src="../figma UI/event.png.png" alt="event" />
+      </section>
+      <section id="screen-detail" class="screen">
+        <img src="../figma UI/detail.png.png" alt="detail" />
+      </section>
+      <section id="screen-coupon" class="screen">
+        <img src="../figma UI/coupon.png.png" alt="coupon" />
+      </section>
+      <section id="screen-cart" class="screen">
+        <img src="../figma UI/cart.png.png" alt="cart" />
+      </section>
+
+      <div id="hotspot-layer"></div>
+      <div id="coupon-stack-layer"></div>
+      <div id="cart-stack-layer"></div>
+
+      <div id="popup-layer" class="popup-layer"></div>
+      <div id="coupon-select-layer" class="popup-layer"></div>
+
+      <div class="hotspots" aria-hidden="false">
+        <button data-go="main" class="tab tab-main" title="홈"></button>
+        <button data-go="list" class="tab tab-list" title="상품목록"></button>
+        <button data-go="event" class="tab tab-event" title="QR"></button>
+        <button data-go="coupon" class="tab tab-coupon" title="My CU"></button>
+        <button data-go="cart" class="tab tab-cart" title="전체보기"></button>
+      </div>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

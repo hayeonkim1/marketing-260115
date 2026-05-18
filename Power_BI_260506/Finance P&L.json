@@ -1,0 +1,79 @@
+{
+    "name": "Finance P&L FY2024",
+    "dataColors": [
+        "#1B5E20", 
+        "#43A047", 
+        "#FFB300", 
+        "#673AB7", 
+        "#1976D2", 
+        "#A5D6A7", 
+        "#81C784", 
+        "#C8E6C9"
+    ],
+    "background": "#FFFFFF",
+    "foreground": "#333333",
+    "tableAccent": "#1B5E20",
+    "visualStyles": {
+        "*": {
+            "*": {
+                "background": [
+                    {
+                        "show": true,
+                        "color": { "solid": { "color": "#FFFFFF" } },
+                        "transparency": 0
+                    }
+                ],
+                "border": [
+                    {
+                        "show": true,
+                        "color": { "solid": { "color": "#E0E0E0" } },
+                        "radius": 5
+                    }
+                ],
+                "title": [
+                    {
+                        "show": true,
+                        "fontFamily": "Segoe UI Semibold",
+                        "fontSize": 12,
+                        "color": { "solid": { "color": "#757575" } }
+                    }
+                ]
+            }
+        },
+        "page": {
+            "*": {
+                "background": [
+                    {
+                        "color": { "solid": { "color": "#FFFFFF" } },
+                        "transparency": 0
+                    }
+                ]
+            }
+        },
+        "tableEx": {
+            "*": {
+                "columnHeaders": [
+                    {
+                        "fontColor": { "solid": { "color": "#FFFFFF" } },
+                        "backColor": { "solid": { "color": "#1B5E20" } },
+                        "fontFamily": "Segoe UI Bold"
+                    }
+                ],
+                "values": [
+                    {
+                        "backColorSecondary": { "solid": { "color": "#F1F8E9" } }
+                    }
+                ]
+            }
+        },
+        "areaChart": {
+            "*": {
+                "plotArea": [
+                    {
+                        "transparency": 20
+                    }
+                ]
+            }
+        }
+    }
+}

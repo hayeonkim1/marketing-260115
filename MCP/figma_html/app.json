@@ -1,0 +1,134 @@
+{
+  "state": {
+    "activeScreen": "main",
+    "modalOpen": false,
+    "activePopup": null,
+    "cart": [],
+    "couponFilter": "all"
+  },
+  "products": [
+    {
+      "id": "p1",
+      "name": "삼립)황치즈생",
+      "price": 1300,
+      "category": "디저트"
+    },
+    {
+      "id": "p2",
+      "name": "연세우유생크림빵",
+      "price": 2800,
+      "category": "디저트"
+    },
+    {
+      "id": "p3",
+      "name": "칸타타 아메리카노",
+      "price": 1500,
+      "category": "음료"
+    },
+    {
+      "id": "p4",
+      "name": "신라면 건면",
+      "price": 1800,
+      "category": "라면/간편식"
+    },
+    {
+      "id": "p5",
+      "name": "한끼)백년한우도시락",
+      "price": 5700,
+      "category": "도시락/김밥"
+    }
+  ],
+  "coupons": [
+    {
+      "id": "c0",
+      "title": "신규가입자 5% 할인쿠폰",
+      "type": "일반",
+      "discountRate": 5,
+      "expires": "2026-04-30"
+    },
+    {
+      "id": "c1",
+      "title": "[4월 꿀할인] 음료",
+      "type": "음료",
+      "discountRate": 10,
+      "expires": "2026-04-30"
+    },
+    {
+      "id": "c2",
+      "title": "[4월 꿀할인] 라면/간편식",
+      "type": "라면/간편식",
+      "discountRate": 10,
+      "expires": "2026-04-30"
+    },
+    {
+      "id": "c3",
+      "title": "[4월 꿀할인] 황치즈생크림빵",
+      "type": "디저트",
+      "discountRate": 20,
+      "expires": "2026-04-30"
+    },
+    {
+      "id": "c4",
+      "title": "[4월 꿀할인] 디저트/빵",
+      "type": "디저트",
+      "discountRate": 20,
+      "expires": "2026-04-30"
+    },
+    {
+      "id": "c5",
+      "title": "[4월 꿀할인] 도시락/김밥",
+      "type": "도시락/김밥",
+      "discountRate": 20,
+      "expires": "2026-04-30"
+    }
+  ],
+  "interactions": [
+    {
+      "event": "click",
+      "target": "[data-go='main']",
+      "do": "setScreen('main')"
+    },
+    {
+      "event": "click",
+      "target": "[data-go='list']",
+      "do": "setScreen('list')"
+    },
+    {
+      "event": "click",
+      "target": "[data-go='event']",
+      "do": "setScreen('event')"
+    },
+    {
+      "event": "click",
+      "target": "[data-go='coupon']",
+      "do": "setScreen('coupon')"
+    },
+    {
+      "event": "click",
+      "target": "[data-go='cart']",
+      "do": "setScreen('cart')"
+    },
+    {
+      "event": "click",
+      "target": "[data-action='add-to-cart']",
+      "do": "addToCart(currentProduct); openPopup('popup-cart-done')"
+    },
+    {
+      "event": "click",
+      "target": "[data-action='open-coupon-popup-cream']",
+      "do": "issueCoupon('c3'); openPopup('popup-coupon-cream')"
+    },
+    { "event": "click", "target": "#modal-layer", "do": "closePopup()" }
+  ],
+  "prototypeNodes": {
+    "main": "628:3299",
+    "list": "199:6358",
+    "event": "199:6185",
+    "detail": "199:6048",
+    "coupon": "199:7030",
+    "cart": "199:6880",
+    "popupCartDone": "264:2036",
+    "popupCouponIssued": "264:2035",
+    "popupCouponSelect": "508:2600"
+  }
+}

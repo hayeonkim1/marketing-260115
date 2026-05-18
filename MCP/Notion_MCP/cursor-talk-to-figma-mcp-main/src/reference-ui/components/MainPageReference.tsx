@@ -10,8 +10,12 @@ export function MainPageReference() {
           <div className="h-6 w-6 rounded-full border border-black/20" />
           <div className="h-6 w-6 rounded-full border border-black/20" />
         </div>
-        <p className="text-[38px] leading-[1.05] text-ref-text-primary">나는 아침형vs저녁형?</p>
-        <p className="text-[38px] font-bold leading-[1.05] text-ref-text-primary">언제든 혜택은 계속된다!</p>
+        <p className="text-[38px] leading-[1.05] text-ref-text-primary">
+          나는 아침형vs저녁형?
+        </p>
+        <p className="text-[38px] font-bold leading-[1.05] text-ref-text-primary">
+          언제든 혜택은 계속된다!
+        </p>
       </section>
 
       <section className="mt-3 rounded-full border border-ref-purple/40 bg-ref-surface px-4 py-3">
@@ -22,8 +26,12 @@ export function MainPageReference() {
       </section>
 
       <section className="mt-4 rounded-ref bg-ref-surface p-3">
-        <p className="text-lg font-bold text-ref-text-primary">약과는 '명품'을 싸게 산다</p>
-        <p className="mt-1 text-sm text-ref-text-secondary">이젠 위글리팝업에서 명품까지 만나보세요</p>
+        <p className="text-lg font-bold text-ref-text-primary">
+          약과는 '명품'을 싸게 산다
+        </p>
+        <p className="mt-1 text-sm text-ref-text-secondary">
+          이젠 위글리팝업에서 명품까지 만나보세요
+        </p>
       </section>
 
       <section className="mt-4 rounded-[22px] bg-[#0B2B57] p-4 text-white">
@@ -32,8 +40,17 @@ export function MainPageReference() {
       </section>
 
       <section className="mt-6 flex gap-3">
-        <ProductCard title="연세우유 크림빵" subtitle="한정 수량" price="2,900원" badge="행사" />
-        <ProductCard title="아메리카노 1+1" subtitle="오늘만 특가" price="1,500원" />
+        <ProductCard
+          title="연세우유 크림빵"
+          subtitle="한정 수량"
+          price="2,900원"
+          badge="행사"
+        />
+        <ProductCard
+          title="아메리카노 1+1"
+          subtitle="오늘만 특가"
+          price="1,500원"
+        />
       </section>
     </main>
   );
