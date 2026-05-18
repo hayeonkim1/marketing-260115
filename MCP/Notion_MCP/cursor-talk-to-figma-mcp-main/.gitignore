@@ -5,3 +5,5 @@ dist/
 docs/
 mcp-config/**/*.env
 **/
+# olist_로 시작하는 모든 csv 파일 제외
+olist_*.csv
